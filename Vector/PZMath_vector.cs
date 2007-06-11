@@ -20,7 +20,7 @@ namespace eee.Sheffield.PZ.Math
 		// vector[i] = data[offset + i * stride];
 		// for default: offset = 0 and stride = 1
 	{
-		internal double[] data;	// 1D array for contain data
+		internal double[] data = null;	// 1D array for contain data
 		internal int length;		// length of data = offset + size * stride
 		internal int size;		// size of vector
 		internal int offset;		// offset of the start point of the data 
@@ -59,8 +59,8 @@ namespace eee.Sheffield.PZ.Math
 			length = size;
 			data = new double [length];
             Array.Copy(d, data, length);
-            CalculateMean();
-            StandardDeviation();
+            _mean = CalculateMean();
+            _stddev = StandardDeviation();
 		} // PZMath_vector(double [] data)
 
 		public PZMath_vector(PZMath_vector v)
@@ -87,8 +87,8 @@ namespace eee.Sheffield.PZ.Math
             {
                 data[i] = (double)al[i];
             }
-            CalculateMean();
-            StandardDeviation();
+            _mean = CalculateMean();
+            _stddev = StandardDeviation();
         }// 
 		#endregion
 
@@ -150,6 +150,7 @@ namespace eee.Sheffield.PZ.Math
 		} // SetZero()
 
 		#endregion
+
 		#region methods
 		public int MinIndex()
 			// This function returns the index of the minimum value in the vector v. 
@@ -214,20 +215,37 @@ namespace eee.Sheffield.PZ.Math
 
 		public void MemCopyFrom(PZMath_vector v)
 			// v is the source vector
-		{
-            size = v.Size;
-            offset = v.offset;
-            stride = v.stride;
-            length = v.length;
-            if (v.data == null)
-                data = null;
+		{            
+            if (data == null)
+            {
+                size = v.Size;
+                offset = v.offset;
+                stride = v.stride;
+                length = v.length;
+                if (v.data != null)
+                {
+                    data = new double[length];
+                    Array.Copy(v.data, data, length);
+                }
+            }
             else
             {
-                data = new double[length];
-                Array.Copy(v.data, data, length);
+                if (v.data == null)
+                {
+                    size = v.Size;
+                    offset = v.offset;
+                    stride = v.stride;
+                    length = v.length;
+                    data = null;
+                }
+                else
+                {
+                    for (int i = 0; i < size; i++)
+                        this[i] = v[i];
+                }
             }
-            _mean = v._mean;
-            _stddev = v._stddev;
+            _mean = CalculateMean();
+            _stddev = StandardDeviation();
 		} // MemCopy()
 
 		public bool Equals (PZMath_vector v)

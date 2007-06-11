@@ -412,11 +412,11 @@ namespace eee.Sheffield.PZ.Math
 
             // target distribution
             double lamda = 20;
-            double r = 0.3;
+            //double r = 0.3;
             double width = 1.0;
             double height = 1.0;
-            double theta1 = 2;
-            double theta2 = -1.0;
+            //double theta1 = 2;
+            //double theta2 = -1.0;
 
             // prepare workspace
             GeyerMollerSampler GMSampler = new GeyerMollerSampler(N, n0, lamda, width, height);

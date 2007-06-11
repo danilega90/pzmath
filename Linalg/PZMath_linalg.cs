@@ -573,7 +573,7 @@ namespace eee.Sheffield.PZ.Math
 
 			if (M < N)
 			{
-				PZMath_errno.ERROR ("PZMath_linalg::SVDDecompMod(), svd of MxN matrix, M<N, is not implemented", PZMath_errno.PZMath_EUNIMPL);
+                PZMath_errno.ERROR ("PZMath_linalg::SVDDecompMod(), svd of MxN matrix, M<N, is not implemented", PZMath_errno.PZMath_EUNIMPL);
 			}
 			else if (V.RowCount != N)
 			{
@@ -621,6 +621,8 @@ namespace eee.Sheffield.PZ.Math
 			}
 
 			/* Convert A into an upper triangular matrix R */
+            
+            
 
 			for (i = 0; i < N; i++)
 			{
@@ -638,6 +640,8 @@ namespace eee.Sheffield.PZ.Math
 
 				S[i] = tau_i;
 			}
+
+            
 
 			/* Copy the upper triangular part of A into X */
 
@@ -660,6 +664,7 @@ namespace eee.Sheffield.PZ.Math
 				}
 			}
 
+           
 			/* Convert A into an orthogonal matrix L */
 
 			for (j = N; j > 0 && (j -- > 0);)
@@ -668,11 +673,11 @@ namespace eee.Sheffield.PZ.Math
 				double tj = S[j];
 				PZMath_matrix m = A.Submatrix(j, j, M - j, N - j);
 				PZMath_linalg.HouseholderHM1(tj, m);
-			}
+			}           
 
 			/* unpack R into X V S */
 
-			PZMath_linalg.SVDecomp(X, V, S, work);
+			PZMath_linalg.SVDecomp(X, V, S, work);            
 
 			/* Multiply L by X, to obtain U = L X, stored in U */
 
@@ -687,14 +692,14 @@ namespace eee.Sheffield.PZ.Math
 				for (j = 0; j < N; j++)
 				{
 					double Lij = L_i[j];
-					PZMath_vector X_j = X.Row(j);
-					PZMath_blas.Daxpy(Lij, X_j, sum);
+					PZMath_vector X_j = X.Row(j);                   
+					PZMath_blas.Daxpy(Lij, X_j, sum);                   
+
 				}
 
 				L_i.MemCopyFrom(sum);
 			}
 		}
-
 			return PZMath_errno.PZMath_SUCCESS;
 		} // SVDecompMod()
 

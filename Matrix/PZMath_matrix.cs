@@ -21,7 +21,7 @@ namespace eee.Sheffield.PZ.Math
 	public class PZMath_matrix
     {
         #region Fields
-        private double[] data;	// 1D array contains data
+        private double[] data = null;	// 1D array contains data
 		private int row;	// - size1 in gsl_matrix, height
 		private int col;	// - size2 in gsl_matrix, width
 		private int offset;	// offset of the start point of data
