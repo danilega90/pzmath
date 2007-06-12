@@ -123,9 +123,7 @@ namespace eee.Sheffield.PZ.Math
 
 				/* Scale X,  A = sqrt(w) X */
 				A.MemCopyFrom(X);
-
-                
-
+               
 				for (i = 0; i < nn; i++)
 				{
 					double wi = w[i];
@@ -140,17 +138,11 @@ namespace eee.Sheffield.PZ.Math
                 
 				/* Balance the columns of the matrix A */
                
-
 				PZMath_linalg.BalanceColumns(A, D);               
 
 				/* Decompose A into U S Q^T */
                                
                 PZMath_linalg.SVDecompMod(A, QSI, Q, S, xt);
-
-                // check A
-                for (i = 0; i < 19; i++)
-                    for (j = 0; j < 3; j++)
-                        System.Console.WriteLine(A[i, j]);
 
 				/* Solve sqrt(w) y = A c for c, by first computing t = sqrt(w) y */
 
