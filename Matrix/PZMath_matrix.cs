@@ -687,7 +687,7 @@ namespace eee.Sheffield.PZ.Math
      
         #region multiresolution methods
         /// <summary>
-        /// sub sampling, locally average by a kernel, 
+        /// sub sampling, locally average by a kernel, l = 0, ..., N, N is top level, i.e. lowest resolution
         /// G_l(x, y) = sum(sum(w(m, n) * G_l-1(2x + m, 2y + n))), m, n, [-k, k]
         /// </summary>
         /// <param name="?"></param>
@@ -720,30 +720,28 @@ namespace eee.Sheffield.PZ.Math
             PZMath_matrix dstMatrix = new PZMath_matrix(dstHeight, dstWidth);
 
             // local average (spatial convolute)
-            int xStart = halfKernelWidth - 1;
-            int xEnd = width - halfKernelWidth;
-            int yStart = halfKernelHeight - 1;
-            int yEnd = height - halfKernelHeight;
-
-            for (int x = xStart; x < xEnd; x+= 2)
+            int xOffset = halfKernelWidth;
+            int yOffset = halfKernelHeight;
+            for (int dstx = 0; dstx < dstWidth; dstx++)
             {
-                for (int y = yStart; y < yEnd; y+= 2)
+                for (int dsty = 0; dsty < dstHeight; dsty++)
                 {
-                    int dstx = (x - xStart) / 2;
-                    int dsty = (y - yStart) / 2;
                     double localSum = 0.0;
                     // inside kernel
                     for (int kx = -1 * halfKernelWidth; kx <= halfKernelWidth; kx++)
                     {
                         for (int ky = -1 * halfKernelHeight; ky <= halfKernelHeight; ky++)
                         {
-                            localSum += expandSrc[y, x] * kernel[ky + halfKernelHeight, kx + halfKernelWidth];
+                            int srcx = 2 * dstx + kx + xOffset;
+                            int srcy = 2 * dsty + ky + yOffset;
+                            int kernelx = kx + halfKernelWidth;
+                            int kernely = ky + halfKernelHeight;
+                            localSum += expandSrc[srcy, srcx] * kernel[kernely, kernelx];
                         }
                     }
                     dstMatrix[dsty, dstx] = localSum;
                 }
-            }
-           
+            }                       
             return dstMatrix;
         }
         
@@ -779,39 +777,34 @@ namespace eee.Sheffield.PZ.Math
             // expand src matrix
             PZMath_matrix expandSrc = this.BoundMirrorExpand(kernelHeight, kernelWidth);
             PZMath_matrix dstMatrix = new PZMath_matrix(dstHeight, dstWidth);
-
+            
             // local average (spatial convolute)
-            int xStart = halfKernelWidth - 1;
-            int xEnd = width - halfKernelWidth;
-            int yStart = halfKernelHeight - 1;
-            int yEnd = height - halfKernelHeight;
-
+            int xOffset = halfKernelWidth;
+            int yOffset = halfKernelHeight;
             for (int dstx = 0; dstx < dstWidth; dstx++)
             {
                 for (int dsty = 0; dsty < dstHeight; dsty++)
                 {
-                    // inside kernel
                     double localSum = 0.0;
-                    double e = 0.0;
-                    for (double kx = -1.0 * halfKernelWidth; kx <= halfKernelWidth; kx++)
+                    double kernelSum = 0.0;
+                    // inside kernel
+                    for (int kx = -1 * halfKernelWidth; kx <= halfKernelWidth; kx++)
                     {
-                        for (double ky = -1.0 * halfKernelHeight; ky <= halfKernelHeight; ky++)
+                        for (int ky = -1 * halfKernelHeight; ky <= halfKernelHeight; ky++)
                         {
-                            double srcx = (dstx + kx) / 2.0;
-                            double srcy = (dsty + ky) / 2.0;
-                            // srcx and srcy are even number;
-                            if (srcx != System.Math.Floor(srcx) || srcy != System.Math.Floor(srcy))
+                            if (((dstx + kx) % 2 != 0) || ((dsty + ky) % 2 != 0))
                                 continue;
-                            int srcx_i = (int)srcx + halfKernelWidth;
-                            int srcy_i = (int)srcy + halfKernelHeight;
-                            localSum += kernel[(int)(ky + halfKernelHeight), (int)(kx + halfKernelWidth)] * expandSrc[srcy_i, srcx_i];
-                            e += kernel[(int)(ky + halfKernelHeight), (int)(kx + halfKernelWidth)];
+                            int srcx = (dstx + kx) / 2 + xOffset;
+                            int srcy = (dsty + ky) / 2 + yOffset;
+                            int kernelx = kx + halfKernelWidth;
+                            int kernely = ky + halfKernelHeight;
+                            localSum += expandSrc[srcy, srcx] * kernel[kernely, kernelx];
+                            kernelSum += kernel[kernely, kernelx];
                         }
                     }
-                    dstMatrix[dsty, dstx] = localSum / e;
+                    dstMatrix[dsty, dstx] = localSum / kernelSum;
                 }
-            }
-            
+            }                         
             return dstMatrix;
         } // ExpandMirrorExpand()
         #endregion
