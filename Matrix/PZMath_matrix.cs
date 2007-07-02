@@ -623,21 +623,134 @@ namespace eee.Sheffield.PZ.Math
             return L;
         } // CholskyDecomp()
 
+        #region Convolution methods
+        /// <summary>
+        /// x-direction convolute with an 1D double kernel
+        /// </summary>
+        /// <param name="kernel">1D double kernel</param>
+        /// <returns></returns>
+        public PZMath_matrix ConvoluteRow(PZMath_vector kernel)
+        {
+            return ConvoluteRowMirrorExpand(kernel);
+        } // ConvoluteRow()
+
+        /// <summary>
+        /// x-direction convolute with an 1D double kernel
+        /// mirror expand source matrix before convolution
+        /// </summary>
+        /// <param name="kernel">1D double kernel</param>
+        /// <returns></returns>
+        private PZMath_matrix ConvoluteRowMirrorExpand(PZMath_vector kernel)
+        {
+            // kernel info
+            int kernelSize = kernel.Size;
+            int halfKernelSize = (kernelSize - 1) / 2;
+
+            // matrix info
+            int height = row;
+            int width = col;
+
+            // expand src matrix
+            PZMath_matrix expandSrc = this.BoundMirrorExpand(kernelSize, kernelSize);
+            PZMath_matrix expandDst = new PZMath_matrix(expandSrc);
+
+            // spatial convolute
+            int xStart = halfKernelSize;
+            int xEnd = width + halfKernelSize;
+            int yStart = halfKernelSize;
+            int yEnd = height + halfKernelSize;
+
+            for (int x = xStart; x < xEnd; x++)
+            {
+                for (int y = yStart; y < yEnd; y++)
+                {
+                    double localSum = 0.0;
+                    // inside kernel
+                    for (int k = -1 * halfKernelSize; k <= halfKernelSize; k ++)
+                    {
+                        localSum += expandSrc[y, x + k] * kernel[k + halfKernelSize];                       
+                    }
+                    expandDst[y, x] = localSum;
+                }
+            }
+
+            // shrink dst matrix
+            PZMath_matrix dstMatrix = expandDst.BoundMirrorShrink(kernelSize, kernelSize);
+
+            return dstMatrix;
+        } // ConvoluteRowMirrorExpand()
+
+        /// <summary>
+        /// y-direction convolute with an 1D double kernel
+        /// </summary>
+        /// <param name="kernel">1D double kernel</param>
+        /// <returns></returns>
+        public PZMath_matrix ConvoluteColumn(PZMath_vector kernel)
+        {
+            return ConvoluteColumnMirrorExpand(kernel);
+        } // ConvoluteColumn()
+
+        /// <summary>
+        /// y_direction convolute with an 1D double kernel
+        /// mirror expand source matrix before convolution
+        /// </summary>
+        /// <param name="kernel">1D double kernel</param>
+        /// <returns></returns>
+        private PZMath_matrix ConvoluteColumnMirrorExpand(PZMath_vector kernel)
+        {
+            // kernel info
+            int kernelSize = kernel.Size;
+            int halfKernelSize = (kernelSize - 1) / 2;
+
+            // matrix info
+            int height = row;
+            int width = col;
+
+            // expand src matrix
+            PZMath_matrix expandSrc = this.BoundMirrorExpand(kernelSize, kernelSize);
+            PZMath_matrix expandDst = new PZMath_matrix(expandSrc);
+
+            // spatial convolute
+            int xStart = halfKernelSize;
+            int xEnd = width + halfKernelSize;
+            int yStart = halfKernelSize;
+            int yEnd = height + halfKernelSize;
+
+            for (int x = xStart; x < xEnd; x++)
+            {
+                for (int y = yStart; y < yEnd; y++)
+                {
+                    double localSum = 0.0;
+                    // inside kernel
+                    for (int k = -1 * halfKernelSize; k <= halfKernelSize; k++)
+                    {
+                        localSum += expandSrc[y + k, x] * kernel[k + halfKernelSize];
+                    }
+                    expandDst[y, x] = localSum;
+                }
+            }
+
+            // shrink dst matrix
+            PZMath_matrix dstMatrix = expandDst.BoundMirrorShrink(kernelSize, kernelSize);
+
+            return dstMatrix;
+        } // ConvoluteColumnMirrorExpand()
+
         /// <summary>
         /// kernel spatial convolution
         /// </summary>
         /// <param name="kernel"></param>
         /// <returns></returns>
-        public PZMath_matrix Convolute(PZMath_matrix kernel)
+        public PZMath_matrix Convolute2D(PZMath_matrix kernel)
         {
-            return ConvoluteMirrorExpand(kernel);
+            return Convolute2DMirrorExpand(kernel);
         }
         /// <summary>
         /// kernel spatial convolution, mirror expand before convolution
         /// </summary>
         /// <param name="kernel"></param>
         /// <returns></returns>
-        private PZMath_matrix ConvoluteMirrorExpand(PZMath_matrix kernel)
+        private PZMath_matrix Convolute2DMirrorExpand(PZMath_matrix kernel)
         {
             // kernel info
             int kernelHeight = kernel.RowCount;
@@ -652,12 +765,17 @@ namespace eee.Sheffield.PZ.Math
             // expand src matrix
             PZMath_matrix expandSrc = this.BoundMirrorExpand(kernelHeight, kernelWidth);
             PZMath_matrix expandDst = new PZMath_matrix(expandSrc);
-            
+
             // spatial convolute
-            int xStart = halfKernelWidth - 1;
-            int xEnd = width - halfKernelWidth;
-            int yStart = halfKernelHeight - 1;
-            int yEnd = height - halfKernelHeight;
+            //int xStart = halfKernelWidth - 1;
+            //int xEnd = width - halfKernelWidth;
+            //int yStart = halfKernelHeight - 1;
+            //int yEnd = height - halfKernelHeight;
+            int xStart = halfKernelWidth;
+            int xEnd = width + halfKernelWidth;
+            int yStart = halfKernelHeight;
+            int yEnd = height + halfKernelHeight;
+
             for (int x = xStart; x < xEnd; x++)
             {
                 for (int y = yStart; y < yEnd; y++)
@@ -668,24 +786,26 @@ namespace eee.Sheffield.PZ.Math
                     {
                         for (int ky = -1 * halfKernelHeight; ky <= halfKernelHeight; ky++)
                         {
-                            localSum += expandSrc[y, x] * kernel[ky + halfKernelHeight, kx + halfKernelWidth];
+                            //localSum += expandSrc[y, x] * kernel[ky + halfKernelHeight, kx + halfKernelWidth];
+                            localSum += expandSrc[y + ky, x + kx] * kernel[ky + halfKernelHeight, kx + halfKernelWidth];
                         }
                     }
                     expandDst[y, x] = localSum;
                 }
             }
-            
+
             // shrink dst matrix
             PZMath_matrix dstMatrix = expandDst.BoundMirrorShrink(kernelHeight, kernelWidth);
             return dstMatrix;
         }
-
+        #endregion
+        
+        #region multiresolution methods
         /// P. J. Burt, The pyramid as a structure for efficient computation , 
         ///     in A. Rosenfeld (ed), Multiresolution Image Processing and Analysis, Springer-Verlag, Berlin Heidelberg New York, 1984, pp 6 - 35
         /// W.B. Goh and K.Y. Chan, "Shape description using gradient vector field histograms", 
-        ///     in Scale Space Methods in Computer Vision, vol. 2695, Lecture Notes in Computer Science, L. D. Griffin and M. Lillholm, Eds.: Springer Berlin / Heidelberg, 2003, pp. 713-728.
-     
-        #region multiresolution methods
+        ///     in Scale Space Methods in Computer Vision, vol. 2695, Lecture Notes in Computer Science, L. D. Griffin and M. Lillholm, Eds.: Springer Berlin / Heidelberg, 2003, pp. 713-728.     
+
         /// <summary>
         /// sub sampling, locally average by a kernel, l = 0, ..., N, N is top level, i.e. lowest resolution
         /// G_l(x, y) = sum(sum(w(m, n) * G_l-1(2x + m, 2y + n))), m, n, [-k, k]
