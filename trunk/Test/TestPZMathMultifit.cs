@@ -46,7 +46,7 @@ namespace eee.Sheffield.PZ.Math
             f.p = p;
             f.parms = d;
 
-            PZMath_random_ParkMiller_Normal r = new PZMath_random_ParkMiller_Normal();
+            ParkMillerNormal r = new ParkMillerNormal();
             // this is the data to be fiitted
             for (i = 0; i < n; i++)
             {
