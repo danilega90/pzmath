@@ -10,12 +10,12 @@ using System.IO;
 
 namespace eee.Sheffield.PZ.Math
 {
-    public class UniformDistribution
+    public class UniformDistribution : PZRandomUnivariate
     {
         #region Fields
         private double lowerBound;
         private double upperBound;
-        private PZMath_random_ParkMiller random;
+        private ParkMillerUniform random;
         private double range;
         #endregion
 
@@ -36,49 +36,68 @@ namespace eee.Sheffield.PZ.Math
         /// <summary>
         /// default constructor U(0, 1]
         /// </summary>
-        public UniformDistribution() : this(0.0, 1.0)
-        {
-        }
+        public UniformDistribution() : this(0.0, 1.0) { }
 
         /// <summary>
         /// U(lowerBound, upperBound]
         /// </summary>
         /// <param name="l">lower bound</param>
         /// <param name="u">upper bound</param>
-        public UniformDistribution(double l, double u)
+        public UniformDistribution(double l, double u) : base()
         {
-            lowerBound = l < u ? l : u;
-            upperBound = u > l ? u : l;
             if (l == u)
                 throw new ApplicationException("UniformDistribution::UniformDistribution(), lower bound equals upper bound!");
-            random = new PZMath_random_ParkMiller();
+
+            lowerBound = l < u ? l : u;
+            upperBound = u > l ? u : l;
+            
+            random = new ParkMillerUniform();
             range = upperBound - lowerBound;
         }
-        public UniformDistribution(long seed)
+        public UniformDistribution(long seed) : base(seed)
         {
             lowerBound = 0.0;
             upperBound = 1.0;
-            random = new PZMath_random_ParkMiller(seed);
+            //random = new ParkMillerUniform(seed);
             range = 1.0;
         }
 
-        public UniformDistribution(double l, double u, long seed)
+        public UniformDistribution(double l, double u, long seed) : base(seed)
         {
-            lowerBound = l < u ? l : u;
-            upperBound = u > l ? u : l;
             if (l == u)
                 throw new ApplicationException("UniformDistribution::UniformDistribution(), lower bound equals upper bound!");
-            random = new PZMath_random_ParkMiller(seed);
+
+            lowerBound = l < u ? l : u;
+            upperBound = u > l ? u : l;
+            
+            //random = new ParkMillerUniform(seed);
             range = upperBound - lowerBound;
         }
         #endregion
 
-        #region generate random numbers
-        public double Sample()
+        #region override base class method
+        /// <summary>
+        /// reset seed and work space
+        /// </summary>
+        protected override void Reset()
         {
-            double r = random.NextVariate();
+            random = new ParkMillerUniform(_seed);
+        } // Reset()
+
+        /// <summary>
+        /// sample a random variable
+        /// </summary>
+        /// <returns></returns>
+        public override double Sample()
+        {
+            double r = random.Sample();
             return r * range + lowerBound;
-        }
+        } // Sample()
+
+        public override double Evaluate(double x)
+        {
+            return 1.0 / range;
+        } // Evaluate()
         #endregion
 
         #region example codes

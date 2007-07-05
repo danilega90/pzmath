@@ -6,17 +6,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
-namespace eee.Sheffield.PZ.Math.Random
+namespace eee.Sheffield.PZ.Math
 {
     /// <summary>
     /// Poisson Distribution
     /// </summary>
-    public class PoissonDistribution
+    public class PoissonDistribution : PZRandomUnivariate
     {
         #region Fields
-        private double lamda;
-        private UniformDistribution random;
+        private double _lamda;
+        private ParkMillerUniform random;
         #endregion
 
         #region Constructor
@@ -24,26 +25,68 @@ namespace eee.Sheffield.PZ.Math.Random
         /// input lamda
         /// </summary>
         /// <param name="l"></param>
-        public PoissonDistribution(double l)
+        public PoissonDistribution(double lamda) : base()
         {
-            if (l <= 0)
+            if (lamda <= 0)
                 throw new ApplicationException("PoissonDistribution::PossionDistribution(), lamda is less or equal to zero!");
 
-            lamda = l;
-            random = new UniformDistribution();
+            _lamda = lamda;
+            //random = new UniformDistribution();
+        }
+
+        public PoissonDistribution(double lamda, long seed) : base(seed)
+        {
+            if (lamda <= 0)
+                throw new ApplicationException("PoissonDistribution::PossionDistribution(), lamda is less or equal to zero!");
+
+            _lamda = lamda;
         }
         #endregion
 
-        #region sample and evaluate method
+        #region override base class method
         /// <summary>
-        /// sample method, Knuth method
-        /// http://en.wikipedia.org/wiki/Poisson_distribution
+        /// reset seed and work space
+        /// </summary>
+        protected override void Reset()
+        {
+            random = new ParkMillerUniform(_seed);
+        } // Reset()
+
+        /// <summary>
+        /// sample a random variable
         /// </summary>
         /// <returns></returns>
-        public int Sample()
+        public override double Sample()
         {
-            double L = System.Math.Exp(-1.0 * lamda);
-            int k = 0;
+            return KnuthSampler();
+        } // Sample()
+
+        /// <summary>
+        /// Evaluate method
+        /// </summary>
+        /// <param name="k"></param>
+        /// <returns></returns>
+        public override double Evaluate(double k)
+        {
+            double P = 1;
+            for (int i = 2; i <= k; i++)
+                P = P * i;
+            double e = System.Math.Exp(-1.0 * _lamda) * System.Math.Pow(_lamda, k);
+            return e / P;
+        } // Evaluate()
+        #endregion
+
+        #region sample methods
+        /// <summary>
+        /// Knuth sample method
+        /// http://en.wikipedia.org/wiki/Poisson_distribution
+        /// slow for large lamda value
+        /// </summary>
+        /// <returns></returns>
+        private double KnuthSampler()
+        {
+            double L = System.Math.Exp(-1.0 * _lamda);
+            double k = 0;
             double p = 1;
             do
             {
@@ -53,21 +96,24 @@ namespace eee.Sheffield.PZ.Math.Random
             }
             while (p >= L);
             return k - 1;
-        } // Sample()
+        } // KnuthSampler()
+        #endregion
 
+        #region Example
         /// <summary>
-        /// Evaluate method
+        /// Poisson distribution example
         /// </summary>
-        /// <param name="k"></param>
-        /// <returns></returns>
-        public double Evaluate(int k)
+        public static void Example()
         {
-            int P = 1;
-            for (int i = 2; i <= k; i++)
-                P = P * i;
-            double e = System.Math.Exp(-1.0 * lamda) * System.Math.Pow(lamda, (double)k);
-            return e / (double)P;
-        } // Evaluate()
+            string filename1 = "v1.txt";
+            FileStream fs1 = new FileStream(filename1, FileMode.Create, FileAccess.Write);
+            StreamWriter w1 = new StreamWriter(fs1);
+            PoissonDistribution random = new PoissonDistribution(8);
+            for (int i = 0; i < 10000; i++)
+                w1.WriteLine(random.Sample());
+            w1.Close();
+            fs1.Close();
+        } // Example()
         #endregion
     }
 }
