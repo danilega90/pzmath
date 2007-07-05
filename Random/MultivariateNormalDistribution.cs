@@ -19,7 +19,7 @@ namespace eee.Sheffield.PZ.Math
         private PZMath_vector mu;
         private PZMath_matrix sigma;
         private int dimension;
-        private List<PZMath_random_ParkMiller_Normal> random;
+        private List<ParkMillerNormal> random;
         private double A;
         private PZMath_matrix invSigma;
         private double detSigma;
@@ -88,9 +88,9 @@ namespace eee.Sheffield.PZ.Math
         /// </summary>
         private void Init()
         {
-            random = new List<PZMath_random_ParkMiller_Normal>(dimension);
+            random = new List<ParkMillerNormal>(dimension);
             for (int i = 0; i < dimension; i++)
-                random.Add(new PZMath_random_ParkMiller_Normal(DateTime.Now.Millisecond
+                random.Add(new ParkMillerNormal(DateTime.Now.Millisecond
                 + DateTime.Now.Second
                 + DateTime.Now.Minute + i * 2000));
 
@@ -115,7 +115,7 @@ namespace eee.Sheffield.PZ.Math
             double[] sample = new double[dimension];
             for (int i = 0; i < dimension; i++)
             {
-                double r = random[i].NextVariate();
+                double r = random[i].Sample();
                 sample[i] = r * System.Math.Sqrt(sigma[i, i]) + mu[i];
             }
             return sample;

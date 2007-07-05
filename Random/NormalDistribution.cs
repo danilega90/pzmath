@@ -6,27 +6,28 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace eee.Sheffield.PZ.Math
 {
-    public class NormalDistribution
+    public class NormalDistribution : PZRandomUnivariate
     {
         #region Fields
-        private double mu;
-        private double squareSigma;
-        private PZMath_random_ParkMiller_Normal random;
+        private double _mu;
+        private double _squareSigma;
+        private ParkMillerNormal random;
         #endregion
 
         #region Property
         private double Mu
         {
-            get { return mu; }
-            set { mu = value; }
+            get { return _mu; }
+            set { _mu = value; }
         }
         private double SquareSigma
         {
-            get { return squareSigma; }
-            set { squareSigma = value; }
+            get { return _squareSigma; }
+            set { _squareSigma = value; }
         }
         #endregion
 
@@ -35,57 +36,79 @@ namespace eee.Sheffield.PZ.Math
         /// default constructor 
         /// N(0, 1)
         /// </summary>
-        public NormalDistribution() : this(0.0, 1.0)
-        {
-        }
+        public NormalDistribution() : this(0.0, 1.0) { }
 
         /// <summary>
         /// N(mu, squareSigma)
         /// </summary>
-        public NormalDistribution(double m, double sigma)
+        public NormalDistribution(double mu, double sigma) : base()
         {
-            mu = m;
-            squareSigma = sigma * sigma;        
-            random = new PZMath_random_ParkMiller_Normal();
+            _mu = mu;
+            _squareSigma = sigma * sigma;        
+            //random = new ParkMillerNormal();
         }
 
-        public NormalDistribution(long seed)
+        public NormalDistribution(long seed) : base(seed)
         {
-            mu = 0.0;
-            squareSigma = 1.0;
-            random = new PZMath_random_ParkMiller_Normal(seed);
+            _mu = 0.0;
+            _squareSigma = 1.0;
+            //random = new ParkMillerNormal(seed);
         }
-        public NormalDistribution(double m, double sigma, long seed)
+        public NormalDistribution(double mu, double sigma, long seed) : base(seed)
         {
-            mu = m;
-            squareSigma = sigma * sigma;
-            random = new PZMath_random_ParkMiller_Normal(seed);
+            _mu = mu;
+            _squareSigma = sigma * sigma;
+            //random = new ParkMillerNormal(seed);
         }
-
         #endregion
 
-        #region sample and evaluate method
+        #region override base clas method
         /// <summary>
-        /// sample method
+        /// reset seed and work space
+        /// </summary>
+        protected override void Reset()
+        {
+            random = new ParkMillerNormal(_seed);
+        } // Reset()
+
+        /// <summary>
+        /// sample a random variable
         /// </summary>
         /// <returns></returns>
-        public double Sample()
+        public override double Sample()
         {
-            double r = random.NextVariate();
-            return r * System.Math.Sqrt(squareSigma) + mu;
-        }
+            double r = random.Sample();
+            return r * System.Math.Sqrt(_squareSigma) + _mu;
+        } // Sample()
 
         /// <summary>
         /// evaluate method
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public double Evaluate(double x)
+        public override double Evaluate(double x)
         {
-            double t = (x - mu) * (x - mu) / -2.0 / squareSigma;
+            double t = (x - _mu) * (x - _mu) / -2.0 / _squareSigma;
             double e = System.Math.Exp(t);
-            return e / System.Math.Sqrt(2.0 * System.Math.PI * squareSigma);
-        }
+            return e / System.Math.Sqrt(2.0 * System.Math.PI * _squareSigma);
+        } // Evaluate()
+        #endregion
+
+        #region Example
+        /// <summary>
+        /// normal distribution example
+        /// </summary>
+        public static void Example()
+        {
+            string filename1 = "v1.txt";
+            FileStream fs1 = new FileStream(filename1, FileMode.Create, FileAccess.Write);
+            StreamWriter w1 = new StreamWriter(fs1);
+            NormalDistribution random = new NormalDistribution(1.0, 4);
+            for (int i = 0; i < 10000; i++)
+                w1.WriteLine(random.Sample());
+            w1.Close();
+            fs1.Close();
+        } // Example()
         #endregion
     }
 }
