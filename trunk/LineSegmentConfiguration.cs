@@ -908,6 +908,87 @@ namespace eee.Sheffield.PZ.Imaging
         {
             return System.Math.Exp(-1.0 * 10 * x / M);
         }
+
+        /// <summary>
+        /// clear loops, remain the one with lower Gs value
+        /// </summary>
+        public void ClearLoops()
+        {
+            int nM1 = _n - 1;
+            List<int> removeIndexList = new List<int>(0);
+            // search loops, record the one with higher Gs value
+            for (int i = 0; i < nM1; i++)
+                // for each line segment
+            {
+                LineSegment lineSegmenti = (LineSegment)_configuration[i];
+                for (int j = i + 1; j < _n; j++)
+                {
+                    LineSegment lineSegmentj = (LineSegment)_configuration[j];
+                    if ((lineSegmenti.StartPoint.Equals(lineSegmentj.StartPoint) 
+                        && lineSegmenti.EndPoint.Equals(lineSegmentj.EndPoint))
+                        || (lineSegmenti.StartPoint.Equals(lineSegmentj.EndPoint)
+                        && lineSegmenti.EndPoint.Equals(lineSegmentj.StartPoint)))
+                    {
+                        if (lineSegmenti.Gs > lineSegmentj.Gs)
+                            removeIndexList.Add(i);
+                        else
+                            removeIndexList.Add(j);
+                    }
+                }
+            }
+
+            // remove 
+            int removeCount = removeIndexList.Count;
+            removeIndexList.Sort();
+            for (int i = removeCount - 1; i >= 0; i--)
+                Configure.RemoveAt(removeIndexList[i]);
+            _n = _configuration.Count;
+        } // ClearLoops()
+
+        /// <summary>
+        /// clear free line segments
+        /// </summary>
+        public void ClearFreeLineSegments()
+        {
+            bool startFree = true;
+            bool endFree = true;
+            List<int> removeIndex = new List<int>(0);
+            List<LineSegment> joinedLineSegmentConfiguration = JoinSegments(_configuration);
+            int lineSegmentCount = joinedLineSegmentConfiguration.Count;
+            for (int i = 0; i < lineSegmentCount - 1; i++)
+            {
+                LineSegment lineSegmenti = (LineSegment)joinedLineSegmentConfiguration[i];
+                for (int j = i + 1; j < lineSegmentCount; j++)
+                {
+                    LineSegment lineSegmentj = (LineSegment)joinedLineSegmentConfiguration[j];
+                    
+                    // search start point
+                    if (lineSegmenti.StartPoint.Equals(lineSegmentj.StartPoint)
+                        || lineSegmenti.StartPoint.Equals(lineSegmentj.EndPoint))
+                    {
+                        startFree = false;
+                        break;
+                    }
+                    // search end point
+                    if (lineSegmenti.EndPoint.Equals(lineSegmentj.StartPoint)
+                        || lineSegmenti.EndPoint.Equals(lineSegmentj.EndPoint))
+                    {
+                        endFree = false;
+                        break;
+                    }
+                }
+                if (startFree && endFree)
+                    removeIndex.Add(i);
+            }
+
+            // remove free line segments
+            int removeCount = removeIndex.Count;
+            removeIndex.Sort();
+            for (int i = removeCount - 1; i >= 0; i--)
+                joinedLineSegmentConfiguration.RemoveAt(removeIndex[i]);
+
+            _configuration = joinedLineSegmentConfiguration;
+        } // ClearFreeLineSegments
         #endregion
 
         #region I/O
@@ -1318,6 +1399,32 @@ namespace eee.Sheffield.PZ.Imaging
         {
             WriteAllDetails(fileName, FileMode.OpenOrCreate, FileAccess.Write);
         } // WriteAllDetails()
+
+        /// <summary>
+        /// convert line segment configuration to a matrix
+        /// white background, black line segments
+        /// </summary>
+        /// <param name="srcImage"></param>
+        /// <returns></returns>
+        public PZMath_matrix ConvertToMatrix(Bitmap srcImage)
+        {
+            int width = srcImage.Width;
+            int height = srcImage.Height;
+            PZMath_matrix dstMatrix = new PZMath_matrix(height, width);
+            dstMatrix.Setall(255);
+            for (int i = 0; i < _n; i++)
+            {
+                int length = _configuration[i].Ls;
+                for (int j = 0; j < length; j++)
+                {
+                    int x = (int)_configuration[i].PointList[j].x;
+                    int y = (int)_configuration[i].PointList[j].y;
+                    dstMatrix[y, x] = 0;
+                }
+            }
+
+            return dstMatrix;
+        } // PZMath_matrix()
         #endregion
 
         #region synthetic model study

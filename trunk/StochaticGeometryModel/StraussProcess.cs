@@ -16,6 +16,13 @@ namespace eee.Sheffield.PZ.Math
 {
     /// <summary>
     /// Strauss process
+    /// f_theta(x) = 1 / c(theta) * exp(<t(x), theta>)
+    /// with respect to a Poisson process with intensity lamda on S = width * height
+    /// t(x) = (n(x), s(x))
+    /// theta = (theta1, theta2)
+    /// 
+    /// theta2 is equal to or less than 0
+    /// when theta2 = 0, we have a Point process mu_theta1 with intensity exp(theta1)
     /// </summary>
     public class StraussProcess
     {
@@ -29,9 +36,9 @@ namespace eee.Sheffield.PZ.Math
         private double _height;
 
         // MCMC parameters
-        private int _total = 10000;         // total # of samples
-        private int _burnIn = 1000;        // burn-in #
-        private int _space = 100;         // samples are recorded once very "space" samples
+        private int _total = 240000;         // total # of samples
+        private int _burnIn = 40000;        // burn-in #
+        private int _space = 200;         // samples are recorded once very "space" samples
         
         // MCMC records
         private List<PZPoint[]> _sampleList = new List<PZPoint[]>(0);    // recorded samples, each sample is a PZPoint array
@@ -92,8 +99,9 @@ namespace eee.Sheffield.PZ.Math
                     //if (xi.Distance(eta) <= r)
                     //    s++;
                 }
-            }            
-            return s / 2;
+            }
+            return s;
+            //return s / 2;
         } // S()
 
         /// <summary>
@@ -111,6 +119,11 @@ namespace eee.Sheffield.PZ.Math
             double h = System.Math.Exp(nx * theta1 + sx * theta2);
             return h;
         } // H()
+
+        public double H(PZPoint[] pointArray)
+        {
+            return H(pointArray, _theta1, _theta2, _r);
+        }
         #endregion
 
         #region stochatic process method
@@ -125,8 +138,9 @@ namespace eee.Sheffield.PZ.Math
         } // EvolveStraussProcess()
 
         /// <summary>
-        /// evolve Strauss process, C. J. Geyer
+        /// evolve Strauss process, C. J. Geyer 1999
         /// start from empty point array
+        /// birth-death algorithm
         /// </summary>
         private void EvolveStraussProcessStartFromEmpty(List<PZPoint[]> sampleList,
             double theta1, double theta2, double r,
@@ -218,20 +232,22 @@ namespace eee.Sheffield.PZ.Math
 
                 // record MCMC                
                 if (i > burIn)
-                {
-                    numberPointsList.Add(nx);
-                    numberClosePointsList.Add(sx);
-                    if (birthRate > deathRate)
-                        birthAcceptRateList.Add(birthAcceptRate);
-                    else
-                        deathAcceptRateList.Add(deathAcceptRate);
-
+                {                                       
                     if (spaceCount == space)
                     {
+                        numberPointsList.Add(nx);
+                        numberClosePointsList.Add(sx);
+
+                        if (birthRate > deathRate)
+                            birthAcceptRateList.Add(birthAcceptRate);
+                        else
+                            deathAcceptRateList.Add(deathAcceptRate);
+
                         spaceCount = 0;
                         PZPoint[] recordPointArray = new PZPoint[oldPointArray.Length];
                         Array.Copy(oldPointArray, recordPointArray, oldPointArray.Length);
                         sampleList.Add(recordPointArray);
+                        
                     }
                 }
 
@@ -279,15 +295,28 @@ namespace eee.Sheffield.PZ.Math
             FileStream fileStream;
             StreamWriter streamWriter;
 
-            double r = 0.05;
-            double theta1 = 4.0;
-            double theta2 = 0.4;
-            double lamda = 1;
-            double width = 1;
-            double height = 1;
+            double r = 0.1;
+            double theta1 = System.Math.Log(100);
+            //double theta2 = 0.0;    // a Poission process mu_theta1, with intensity exp(theta1)
+            double theta2 = System.Math.Log(0.75);
+            double lamda = 1.0;
+            double width = 1.0;
+            double height = 1.0;
             StraussProcess straussProcess = new StraussProcess(theta1, theta2, r, lamda, width, height);
             straussProcess.EvolveStraussProcess();
             
+            // summary statistics
+            PZMath_vector nx = new PZMath_vector(straussProcess.NumberPointsList);
+            PZMath_vector sx = new PZMath_vector(straussProcess.NumberClosePointsList);
+            PZMath_vector birthRate = new PZMath_vector(straussProcess.BirthAcceptRateList);
+            PZMath_vector deathRate = new PZMath_vector(straussProcess.DeathAcceptRateList);
+
+            System.Console.WriteLine("lamda = " + lamda + " mean(n) = " + nx.CalculateMean() + " std(n) = " + nx.StandardDeviation());
+            System.Console.WriteLine("mean(s) = " + sx.CalculateMean() + " std(s) = " + sx.StandardDeviation());
+            System.Console.WriteLine("mean(b) = " + birthRate.CalculateMean() + " std(b) = " + birthRate.StandardDeviation());
+            System.Console.WriteLine("mean(d) = " + deathRate.CalculateMean() + " std(d) = " + deathRate.StandardDeviation());
+
+
             // output Strauss process record
             // n(x) + s(x)
             fileName = "nx sx.txt";
@@ -296,7 +325,7 @@ namespace eee.Sheffield.PZ.Math
             int length = straussProcess.NumberPointsList.Count;
             for (int i = 0; i < length; i++)
             {
-                streamWriter.WriteLine(String.Format("{0, -10:d}{1, -10:d}",(int)straussProcess.NumberPointsList[i], (int)straussProcess.NumberClosePointsList[i]));
+                streamWriter.WriteLine(String.Format("{0, -10:d}{1, -10:d}", (int)straussProcess.NumberPointsList[i], (int)straussProcess.NumberClosePointsList[i]));
             }
             streamWriter.Flush();
             streamWriter.Close();
@@ -314,7 +343,7 @@ namespace eee.Sheffield.PZ.Math
             streamWriter.Flush();
             streamWriter.Close();
             fileStream.Close();
-            
+
             // death accept rate
             fileName = "death accept rate.txt";
             fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -327,6 +356,7 @@ namespace eee.Sheffield.PZ.Math
             streamWriter.Flush();
             streamWriter.Close();
             fileStream.Close();
+
         } // Example()
         #endregion
     }
