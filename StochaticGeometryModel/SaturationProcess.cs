@@ -16,6 +16,13 @@ namespace eee.Sheffield.PZ.Math
 {
     /// <summary>
     /// Saturation process
+    /// f_theta(x) = 1 / c(theta) * exp(<t(x), theta>)
+    /// t(x) = (n(x), u(x))
+    /// u(x) = sum_xi(min(c, m_xi(x))
+    /// m_xi(x) = sum_eta(1[0, r](d(xi, eta))
+    /// theta = (theta1, theta2)
+    /// <t(x), theta> = n(x) * theta1 + u(x) * theta2
+    /// theta is equal or less than 0
     /// </summary>
     public class SaturationProcess
     {
@@ -39,7 +46,7 @@ namespace eee.Sheffield.PZ.Math
         private List<double> _birthAcceptRateList = new List<double>(0);    // birth accept rate
         private List<double> _deathAcceptRateList = new List<double>(0);    // death accept rate
         private List<int> _numberPointsList = new List<int>(0);  // number of points, n(x)
-        private List<int> _numberClosePointsList = new List<int>(0);    // number of close point, s(x)
+        private List<int> _numberClosePointsList = new List<int>(0);    // number of close point, u(x)
         #endregion
 
         #region Properties
@@ -96,7 +103,9 @@ namespace eee.Sheffield.PZ.Math
                     //    s++;
                 }
             }
-            return s / 2;
+            return s;
+
+            //return s / 2;
         } // S()
 
         /// <summary>
@@ -115,6 +124,11 @@ namespace eee.Sheffield.PZ.Math
             double h = System.Math.Exp(nx * theta1 + ux * theta2);
             return h;
         } // H()
+
+        public double H(PZPoint[] pointArray)
+        {
+            return H(pointArray, _theta1, _theta2, _r, _c);
+        } // H()
         #endregion
 
         #region stochatic process method
@@ -129,7 +143,7 @@ namespace eee.Sheffield.PZ.Math
         } // EvolveStraussProcess()
 
         /// <summary>
-        /// evolve Strauss process, C. J. Geyer
+        /// evolve Strauss process, C. J. Geyer 1999
         /// start from empty point array
         /// </summary>
         private void EvolveStraussProcessStartFromEmpty(List<PZPoint[]> sampleList,
@@ -294,8 +308,8 @@ namespace eee.Sheffield.PZ.Math
             process.EvolveStraussProcess();
 
             // output Strauss process record
-            // n(x) + s(x)
-            fileName = "nx sx.txt";
+            // n(x) u(x)
+            fileName = "nx ux.txt";
             fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
             streamWriter = new StreamWriter(fileStream);
             int length = process.NumberPointsList.Count;

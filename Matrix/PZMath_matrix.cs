@@ -87,18 +87,45 @@ namespace eee.Sheffield.PZ.Math
 
 		public PZMath_matrix(double[,] d)
 		{
-			row = d.GetLength(0);
-			col = d.GetLength(1);
+			row = d.GetLength(1);
+			col = d.GetLength(0);
 			offset = 0;
 			stride = 1;
 			orgrow = row;
 			orgcol = col;
 			length = orgrow * orgcol;
 			data = new double[length];
-			for (int i = 0; i < row; i ++)
-				for (int j = 0; j < col; j ++)
-					data[i * col + j] = d[i, j];
+			for (int y = 0; y < row; y ++)
+				for (int x = 0; x < col; x ++)
+					data[y * col + x] = d[x, y];
 		} // PZMath_matrix(double[,] input)
+
+        /// <summary>
+        /// true - black - 0
+        /// false - white - 255
+        /// </summary>
+        /// <param name="b"></param>
+        public PZMath_matrix(bool[,] b)
+        {
+            row = b.GetLength(1);
+            col = b.GetLength(0);
+            offset = 0;
+            stride = 1;
+            orgrow = row;
+            orgcol = col;
+            length = orgrow * orgcol;
+            data = new double[length];
+            for (int y = 0; y < row; y++)
+            {
+                for (int x = 0; x < col; x++)
+                {
+                    if (b[x, y])
+                        data[y * col + x] = 0.0;
+                    else
+                        data[y * col + x] = 255.0;
+                }
+            }
+        } // PZMath_matrix(bool[,])
 
         /// <summary>
         /// genearte a 1D matrix from a row vector
@@ -565,6 +592,113 @@ namespace eee.Sheffield.PZ.Math
         }
 
         /// <summary>
+        ///Expand the matrix by filling the background intensity
+        /// 
+        /// for example 
+        ///
+        /// A = [
+        ///     255  0  0  0
+        ///     255  255  0  255
+        ///     0  255  0  255
+        ///     ]
+        ///
+        /// B = BoundFillingBackgroundIntensityExpand(A, 255) will yield
+        ///
+        ///     255  255 255 255 255 255
+        ///     255  255  0  0  0  0 255
+        ///     255  255  255  0  255 255
+        ///     255  0  255  0  255  255
+        ///     255  255  255  255  255  255
+        ///
+        /// </summary>
+        /// <param name="wk">kernal width</param>
+        /// <param name="hk">kernal height</param>
+        /// <returns></returns>
+        public PZMath_matrix BoundFillingBackgroundIntensityExpand(int hk, int wk, double background)
+        {
+            // half kernal width and height
+            int halfWk = (wk - 1) / 2;
+            int halfHk = (hk - 1) / 2;
+            // original matrix height & width
+            int height = this.RowCount;
+            int width = this.ColumnCount;
+
+            // expanded matrix height & width
+            int heightA2 = height + 2 * halfHk;
+            int widthA2 = width + 2 * halfWk;
+            PZMath_matrix expand = new PZMath_matrix(heightA2, widthA2);
+
+            int Wm1aHWK = width - 1 + halfWk;
+            int HHKm1 = halfHk - 1;
+            // upper row
+            for (int xe = halfWk, x = 0; xe <= Wm1aHWK; xe++, x++)
+                for (int ye = 0, y = halfHk; ye <= HHKm1; ye++, y--)
+                    expand[ye, xe] = background;
+            // bottom row
+            int Hm1a2HHk = height - 1 + 2 * halfHk;
+            for (int xe = halfWk, x = 0; xe <= Wm1aHWK; xe++, x++)
+                for (int ye = height + halfHk, y = height - 2; ye <= Hm1a2HHk; ye++, y--)
+                    expand[ye, xe] = background;
+            // left column
+            int HWKm1 = halfWk - 1;
+            int Hm1aHHK = height - 1 + halfHk;
+            for (int xe = 0, x = halfWk; xe <= HWKm1; xe++, x--)
+                for (int ye = halfHk, y = 0; ye <= Hm1aHHK; ye++, y++)
+                    expand[ye, xe] = background;
+            // right column
+            int Wm1a2HWK = width - 1 + 2 * halfWk;
+            for (int xe = width + halfWk, x = width - 2; xe <= Wm1a2HWK; xe++, x--)
+                for (int ye = halfHk, y = 0; ye <= Hm1aHHK; ye++, y++)
+                    expand[ye, xe] = background;
+            // center
+            for (int xe = halfWk, x = 0; xe <= Wm1aHWK; xe++, x++)
+                for (int ye = halfHk, y = 0; ye <= Hm1aHHK; ye++, y++)
+                    expand[ye, xe] = this[y, x];
+            // left-top corner
+            for (int xc = 0, xe = 2 * halfWk; xc <= HWKm1; xc++, xe--)
+                for (int y = 0; y <= HHKm1; y++)
+                    expand[y, xc] = background;
+            // right-top corner
+            for (int xc = width + halfWk, xe = width + halfWk - 2; xc <= Wm1a2HWK; xc++, xe--)
+                for (int y = 0; y <= HHKm1; y++)
+                    expand[y, xc] = background;
+            // left-bottom corner
+            for (int xc = 0, xe = 2 * halfWk; xc <= HWKm1; xc++, xe--)
+                for (int y = height + halfHk; y <= Hm1a2HHk; y++)
+                    expand[y, xc] = background;
+            // right-bottom corner
+            for (int xc = width + halfWk, xe = width + halfWk - 2; xc <= Wm1a2HWK; xc++, xe--)
+                for (int y = height + halfHk; y <= Hm1a2HHk; y++)
+                    expand[y, xc] = background;
+            return expand;
+        } // BoundFillingBackgroundIntensityExpand()
+
+        /// <summary>
+        /// % Shrink the matrix to remove the padded mirror boundaries
+        ///
+        /// for example 
+        ///
+        /// A = [
+        ///     255  255 255 255 255 255
+        ///     255  255  0  0  0  0 255
+        ///     255  255  255  0  255 255
+        ///     255  0  255  0  255  255
+        ///     255  255  255  255  255  255
+        ///     ]
+        /// 
+        /// B = BoundFillingBackgroundIntensityShrink(A) will yield
+        ///
+        ///     255  0  0  0
+        ///     255  255  0  255
+        ///     0  255  0  255
+        /// </summary>
+        /// <returns></returns>
+        public PZMath_matrix BoundFillingBackgroundIntensityShrink(int hk, int wk)
+        {
+            return this.Submatrix((hk - 1) / 2, (wk - 1) / 2, this.RowCount - (hk - 1), this.ColumnCount - (wk - 1));
+        }
+
+        /// <summary>
         /// LU decomposition, P A = L U, return LU
         /// </summary>
         /// <param name="p"></param>
@@ -744,7 +878,7 @@ namespace eee.Sheffield.PZ.Math
         public PZMath_matrix Convolute2D(PZMath_matrix kernel)
         {
             return Convolute2DMirrorExpand(kernel);
-        }
+        } // Convolute2D()
         /// <summary>
         /// kernel spatial convolution, mirror expand before convolution
         /// </summary>
@@ -797,7 +931,133 @@ namespace eee.Sheffield.PZ.Math
             // shrink dst matrix
             PZMath_matrix dstMatrix = expandDst.BoundMirrorShrink(kernelHeight, kernelWidth);
             return dstMatrix;
-        }
+        } // Convolute2DMirrorExpand()
+
+        /// <summary>
+        /// kernel is a bool template
+        /// boolean operation:"AND" only the "true" elements
+        /// </summary>
+        /// <param name="kernel"></param>
+        /// <returns></returns>
+        public PZMath_matrix AndTrue2D(bool[,] kernel)
+        {
+            // kernel information
+            int hk = kernel.GetLength(1);
+            int wk = kernel.GetLength(0);
+            int halfHk = (hk - 1) / 2;
+            int halfWk = (wk - 1) / 2;
+
+            // matrix info
+            int height = row;
+            int width = col;
+
+            PZMath_matrix expandSrcMatrix = this.BoundFillingBackgroundIntensityExpand(hk, wk, 255);
+            bool[,] expandSrcBoolMatrix = expandSrcMatrix.ConvertToBoolMatrix(125);
+            
+            // prepare dst bool matrix
+            int expandHeight = expandSrcBoolMatrix.GetLength(1);
+            int expandWidth = expandSrcBoolMatrix.GetLength(0);
+            bool[,] expandDstBoolMatrix = new bool[expandWidth, expandHeight];
+
+            int xStart = halfWk;
+            int xEnd = width + halfWk;
+            int yStart = halfHk;
+            int yEnd = height + halfHk;
+
+            for (int x = xStart; x < xEnd; x++)
+            {
+                for (int y = yStart; y < yEnd; y++)
+                {
+                    bool isHit = true;
+                    // inside kernel
+                    for (int kx = -1 * halfWk; kx <= halfWk; kx++)
+                    {
+                        for (int ky = -1 * halfHk; ky <= halfHk; ky++)
+                        {
+                            // kernel, expandSrcBoolMatrix, and expandDstBoolMatrix are bool[,]
+                            if (kernel[kx + halfWk, ky + halfHk])
+                                // kernel element is true
+                            {
+                                if (!expandSrcBoolMatrix[x + kx, y + ky])
+                                    // image element is false
+                                {
+                                    isHit = false;
+                                    break;
+                                }
+                            }                            
+                        }
+                    }
+                    expandDstBoolMatrix[x, y] = isHit;
+                }
+            }
+
+            PZMath_matrix expandDstMatrix = new PZMath_matrix(expandDstBoolMatrix);
+            PZMath_matrix dstMatrix = expandDstMatrix.BoundFillingBackgroundIntensityShrink(hk, wk);
+
+            return dstMatrix;
+        } // AndTrue2D()       
+
+        /// <summary>
+        /// kernel is a bool template
+        /// boolean AND operation for both true and false
+        /// </summary>
+        /// <param name="kernel"></param>
+        /// <returns></returns>
+        public PZMath_matrix AndTrueFalse2D(bool[,] kernel)
+        {
+            // kernel information
+            int hk = kernel.GetLength(1);
+            int wk = kernel.GetLength(0);
+            int halfHk = (hk - 1) / 2;
+            int halfWk = (wk - 1) / 2;
+
+            // matrix info
+            int height = row;
+            int width = col;
+
+            PZMath_matrix expandSrcMatrix = this.BoundFillingBackgroundIntensityExpand(hk, wk, 255);       
+            bool[,] expandSrcBoolMatrix = expandSrcMatrix.ConvertToBoolMatrix(125);
+
+            // prepare dst bool matrix
+            int expandHeight = expandSrcBoolMatrix.GetLength(1);
+            int expandWidth = expandSrcBoolMatrix.GetLength(0);
+            bool[,] expandDstBoolMatrix = new bool[expandWidth, expandHeight];
+
+            int xStart = halfWk;
+            int xEnd = width + halfWk;
+            int yStart = halfHk;
+            int yEnd = height + halfHk;
+
+            for (int x = xStart; x < xEnd; x++)
+            {
+                for (int y = yStart; y < yEnd; y++)
+                {                    
+                    bool isHit = true;
+                    // inside kernel
+                    for (int kx = -1 * halfWk; kx <= halfWk; kx++)
+                    {
+                        for (int ky = -1 * halfHk; ky <= halfHk; ky++)
+                        {
+                            // kernel is a bool[,]
+                            // expandSrcBoolMatrix, and expandDstBoolMatrix are bool[,]
+                            if ((kernel[kx + halfWk, ky + halfHk] && !expandSrcBoolMatrix[x + kx, y + ky])
+                                || (!kernel[kx + halfWk, ky + halfHk] && expandSrcBoolMatrix[x + kx, y + ky]))
+                            {
+                                isHit = false;
+                                break;
+                            }
+                        }
+                    }
+                    expandDstBoolMatrix[x, y] = isHit;
+                }
+            }
+
+            PZMath_matrix expandDstMatrix = new PZMath_matrix(expandDstBoolMatrix);
+            PZMath_matrix dstMatrix = expandDstMatrix.BoundFillingBackgroundIntensityShrink(hk, wk);
+
+            return dstMatrix;
+        } // AndTrueFalse2D()       
+
         #endregion
         
         #region multiresolution methods
@@ -1116,6 +1376,29 @@ namespace eee.Sheffield.PZ.Math
             fileStream.Close();
         }
 
+        /// <summary>
+        /// convert to bool matrix, 
+        /// black - 1 - true - (smaller than threshold)
+        /// white - 0 - false - (larger than threshold)
+        /// </summary>
+        /// <param name="threshold"></param>
+        /// <returns></returns>
+        public bool[,] ConvertToBoolMatrix(int threshold)
+        {
+            bool[,] dstBoolMatrix = new bool[col, row];
+            for (int y = 0; y < row; y++)
+            {
+                for (int x = 0; x < col; x++)
+                {
+                    if (this[y, x] <= threshold)
+                        dstBoolMatrix[x, y] = true;
+                    else
+                        dstBoolMatrix[x, y] = false;
+                }
+            }
+
+            return dstBoolMatrix;
+        } // ConvertToBoolMatrix()
         #endregion
 
         #region example codes

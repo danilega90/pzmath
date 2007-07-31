@@ -9,6 +9,7 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace eee.Sheffield.PZ.Math
 {
@@ -90,9 +91,35 @@ namespace eee.Sheffield.PZ.Math
             _mean = CalculateMean();
             _stddev = StandardDeviation();
         }// 
-		#endregion
 
-		#region properties
+        public PZMath_vector(List<int> list)
+        {
+            size = list.Count;
+            offset = 0;
+            stride = 1;
+            length = size;
+            data = new double[length];
+            for (int i = 0; i < length; i++)
+                data[i] = (double)list[i];
+            _mean = CalculateMean();
+            _stddev = StandardDeviation();
+        }
+
+        public PZMath_vector(List<double> list)
+        {
+            size = list.Count;
+            offset = 0;
+            stride = 1;
+            length = size;
+            data = new double[length];
+            for (int i = 0; i < length; i++)
+                data[i] = (double)list[i];
+            _mean = CalculateMean();
+            _stddev = StandardDeviation();
+        }
+        #endregion
+
+        #region properties
         public double Mean
         {
             get
