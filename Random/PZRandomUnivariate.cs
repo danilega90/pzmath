@@ -43,6 +43,7 @@ namespace eee.Sheffield.PZ.Math
         public void ResetSeed(long seed)
         {
             _seed = seed;
+            Reset();
         }
         protected abstract void Reset();
         public abstract double Sample();

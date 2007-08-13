@@ -36,10 +36,7 @@ namespace eee.Sheffield.PZ.Math
         /// </summary>
         public ParkMillerUniform() : base()
         {
-            //_seed = (long)(DateTime.Now.Millisecond
-            //    + DateTime.Now.Second
-            //    + DateTime.Now.Minute);
-            //Reset();
+
         } // ParkMillerUniform()
 
         /// <summary>
@@ -48,8 +45,6 @@ namespace eee.Sheffield.PZ.Math
         /// <param name="lnSeed"></param>
 		public ParkMillerUniform(long seed) : base(seed)
 		{
-            //_seed = seed;
-            //Reset();
         } // ParkMillerUniform()
 		#endregion
         
@@ -140,108 +135,6 @@ namespace eee.Sheffield.PZ.Math
             w2.Close();
             fs2.Close();
         }
-        #endregion
-
-        //#region method
-        //public double NextVariate()
-        //{
-        //    // Implement multiplicative congruential generator with Schrage's algorithm
-        //    long k = Y / IQ;
-        //    Y = IA * (Y - k * IQ) - IR * k;
-        //    if(Y < 0)
-        //        Y += PZMath_machine.PZMath_LONG_MAX;
-
-        //    // Perform Bays-Durham shuffle to remove low-order serial correlations
-        //    long j = X / NDIV;
-        //    X = Z[j];
-        //    Z[j] = Y;
-        //    double dTemp = AM * (double) X;
-        //    if(dTemp > RNMX)
-        //        dTemp = RNMX;
-
-        //    return dTemp;
-        //} // NextVariate()
-        //#endregion
-
-        //#region save state file IO
-        //public void SaveState(string filename)
-        //{
-        //    FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Write);
-        //    StreamWriter w = new StreamWriter(fs);
-        //    w.WriteLine(X);
-        //    w.WriteLine(Y);
-        //    w.WriteLine(TABLE_SIZE);
-        //    for (int i = 0; i < TABLE_SIZE; i++)
-        //        w.WriteLine(Z[i]);
-        //    w.WriteLine(lnSeed);
-        //    w.Close();
-        //    fs.Close();
-        //} // SaveState()
-
-        //public void ReadState(string filename)
-        //{
-        //    FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
-        //    StreamReader r = new StreamReader(fs);
-        //    X = Convert.ToInt64 (r.ReadLine());
-        //    Y = Convert.ToInt64 (r.ReadLine());
-        //    TABLE_SIZE = Convert.ToInt32 (r.ReadLine());
-        //    for (int i = 0; i < TABLE_SIZE; i ++)
-        //        Z[i] = Convert.ToInt64 (r.ReadLine());
-        //    lnSeed = Convert.ToInt64 (r.ReadLine());
-        //    r.Close();
-        //    fs.Close();
-        //} // ReadState()
-
-        //public void SaveState(StreamWriter w)
-        //{
-        //    w.WriteLine(X);
-        //    w.WriteLine(Y);
-        //    w.WriteLine(TABLE_SIZE);
-        //    for (int i = 0; i < TABLE_SIZE; i++)
-        //        w.WriteLine(Z[i]);
-        //    w.WriteLine(lnSeed);
-        //} // SaveState()
-
-        //public void ReadState(StreamReader r)
-        //{        
-        //    X = Convert.ToInt64(r.ReadLine());
-        //    Y = Convert.ToInt64(r.ReadLine());
-        //    TABLE_SIZE = Convert.ToInt32(r.ReadLine());
-        //    for (int i = 0; i < TABLE_SIZE; i++)
-        //        Z[i] = Convert.ToInt64(r.ReadLine());
-        //    lnSeed = Convert.ToInt64(r.ReadLine());
-        //} // ReadState()
-        //#endregion
-
-        //#region access state
-        //public PZMath_random_state GetState()
-        //{
-        //    PZMath_random_state state = new PZMath_random_state();
-			
-        //    state.x = X;
-        //    state.y = Y;
-        //    state.uTableSize = TABLE_SIZE;
-        //    state.z = new long [TABLE_SIZE];
-        //    for(int i = 0; i < TABLE_SIZE; i++)
-        //        state.z[i] = Z[i];
-        //    state.ln_seed = lnSeed;
-
-        //    return state;
-        //} // GetState()
-        //public void SetState(PZMath_random_state state)
-        //{
-        //    X = state.x;
-        //    Y = state.y;
-
-        //    if(state.uTableSize != TABLE_SIZE)
-        //        PZMath_errno.ERROR ("PZMath_random_ParkMiller::SetState() : Incompatible table sizes!", PZMath_errno.PZMath_EFAILED);
-
-        //    for(int i = 0; i < TABLE_SIZE; i++)
-        //        Z[i] = state.z[i];
-
-        //    lnSeed = state.ln_seed;
-        //} // SetState()
-        //# endregion       
-
+        #endregion       
     } // ParkMillerUniform	
 }

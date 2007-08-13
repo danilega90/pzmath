@@ -122,13 +122,13 @@ namespace eee.Sheffield.PZ.Imaging
 			return "(" + String.Format("{0:0.00}",x) + "," + String.Format("{0:0.00}",y) + ")";
 		}
 
-        public override bool Equals(object p)
+        public bool EqualTo(PZPoint p)
         {
-            if (x == (p as PZPoint).x && y == (p as PZPoint).y && z == (p as PZPoint).z)
+            if (x == p.x && y == p.y && z == p.z)
                 return true;
             else
                 return false;
-        }        
+        }
 	} // PZPoint
 	#endregion
 

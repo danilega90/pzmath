@@ -10,25 +10,28 @@ using System.IO;
 
 namespace eee.Sheffield.PZ.Math
 {
+    /// <summary>
+    /// U(lowerBound, upperBound), uniform distribution
+    /// </summary>
     public class UniformDistribution : PZRandomUnivariate
     {
         #region Fields
-        private double lowerBound;
-        private double upperBound;
-        private ParkMillerUniform random;
-        private double range;
+        private double _lowerBound;
+        private double _upperBound;
+        private ParkMillerUniform _random;
+        private double _range;
         #endregion
 
         #region Property
         private double LowerBound
         {
-            get { return lowerBound; }
-            set { lowerBound = value; }
+            get { return _lowerBound; }
+            set { _lowerBound = value; }
         }
         private double UpperBound
         {
-            get { return upperBound; }
-            set { upperBound = value; }
+            get { return _upperBound; }
+            set { _upperBound = value; }
         }
         #endregion
 
@@ -48,18 +51,18 @@ namespace eee.Sheffield.PZ.Math
             if (l == u)
                 throw new ApplicationException("UniformDistribution::UniformDistribution(), lower bound equals upper bound!");
 
-            lowerBound = l < u ? l : u;
-            upperBound = u > l ? u : l;
+            _lowerBound = l < u ? l : u;
+            _upperBound = u > l ? u : l;
             
-            random = new ParkMillerUniform();
-            range = upperBound - lowerBound;
+            //_random = new ParkMillerUniform();
+            _range = _upperBound - _lowerBound;
         }
         public UniformDistribution(long seed) : base(seed)
         {
-            lowerBound = 0.0;
-            upperBound = 1.0;
+            _lowerBound = 0.0;
+            _upperBound = 1.0;
             //random = new ParkMillerUniform(seed);
-            range = 1.0;
+            _range = 1.0;
         }
 
         public UniformDistribution(double l, double u, long seed) : base(seed)
@@ -67,11 +70,11 @@ namespace eee.Sheffield.PZ.Math
             if (l == u)
                 throw new ApplicationException("UniformDistribution::UniformDistribution(), lower bound equals upper bound!");
 
-            lowerBound = l < u ? l : u;
-            upperBound = u > l ? u : l;
+            _lowerBound = l < u ? l : u;
+            _upperBound = u > l ? u : l;
             
             //random = new ParkMillerUniform(seed);
-            range = upperBound - lowerBound;
+            _range = _upperBound - _lowerBound;
         }
         #endregion
 
@@ -81,7 +84,7 @@ namespace eee.Sheffield.PZ.Math
         /// </summary>
         protected override void Reset()
         {
-            random = new ParkMillerUniform(_seed);
+            _random = new ParkMillerUniform(_seed);
         } // Reset()
 
         /// <summary>
@@ -90,31 +93,57 @@ namespace eee.Sheffield.PZ.Math
         /// <returns></returns>
         public override double Sample()
         {
-            double r = random.Sample();
-            return r * range + lowerBound;
+            return Sampler(_random) * _range + _lowerBound;
         } // Sample()
 
         public override double Evaluate(double x)
         {
-            return 1.0 / range;
+            return 1.0 / _range;
         } // Evaluate()
+        #endregion
+
+
+        #region sample/evaluate methods
+        public static double Sampler(PZRandomUnivariate random)
+        {
+            double r = random.Sample();
+            return r;
+        } // Sampler()
+
+        /// <summary>
+        /// U(0, range], return int value
+        /// </summary>
+        /// <param name="random"></param>
+        /// <param name="range"></param>
+        /// <returns></returns>
+        public static int SamplerInt(PZRandomUnivariate random, int range)
+        {
+            return 0;
+        }
         #endregion
 
         #region example codes
         /// <summary>
         /// uniform distribution example
         /// </summary>
-        public static void Example()
+        public static void ExampleSample()
         {
-            string filename1 = "v1.txt";
-            FileStream fs1 = new FileStream(filename1, FileMode.Create, FileAccess.Write);
+            string folderName = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop) + "\\";
+            string fileName1 = "uniform distibution.txt";
+            double lowerBound = -0.7;
+            double upperBound = 0.7;
+
+            FileStream fs1 = new FileStream(fileName1, FileMode.Create, FileAccess.Write);
             StreamWriter w1 = new StreamWriter(fs1);
-            UniformDistribution random = new UniformDistribution(-0.7, 0.7);
+
+            UniformDistribution random = new UniformDistribution(lowerBound, upperBound);
+
             for (int i = 0; i < 10000; i++)
                 w1.WriteLine(random.Sample());
+
             w1.Close();
             fs1.Close();
-        }
+        } // ExampleSample()
         #endregion
     }
 }
