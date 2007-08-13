@@ -9,6 +9,8 @@ using System.Drawing.Imaging;
 
 namespace eee.Sheffield.PZ.Imaging
 {
+    public enum ConnectionPointType { Start, End };
+
     /// <summary>
     /// line segment
     /// </summary>
@@ -18,13 +20,11 @@ namespace eee.Sheffield.PZ.Imaging
         #region Fields
         // basic
         private int _index = 0;
-        private int _hit = 0;
-        private double _hitProbability = 0.0;        
         private PZPoint _startPoint = null;
         private PZPoint _endPoint = null;
         private List<PZPoint> _pointList = null;
         private List<PZDirection> _directionList = null;
-        
+
         // prior model
         private PZDirection _Cs = null; // average line segment angle
         private int _Ls = 0;    // length
@@ -39,31 +39,46 @@ namespace eee.Sheffield.PZ.Imaging
         private double _Gs = 0.0; // Gs
         private double _pG = 0.0; // pG(s)
         private double _Is = 0.0; // average intensity
-        private double _pI = 0.0; // pI(s)       
+        private double _pI = 0.0; // pI(s)      
+
+        // MCMC model
+        private int _hit = 0;
+        private double _hitProbability = 0.0;
+
+        // connection 
+        private List<LineSegment> _startPointConnectionList = new List<LineSegment>(0);
+        private List<ConnectionPointType> _startPointConnectionTypeList = new List<ConnectionPointType>(0);
+        private List<LineSegment> _endPointConnectionList = new List<LineSegment>(0);
+        private List<ConnectionPointType> _endPointConnectionTypeList = new List<ConnectionPointType>(0);
         #endregion
 
         #region Properties
         public int Index { get { return _index; } set { _index = value; } }
         public int Hit { get { return _hit; } set { _hit = value; } }
-        public double HitProbability { get { return _hitProbability; } set { _hitProbability = value; } }             
+        public double HitProbability { get { return _hitProbability; } set { _hitProbability = value; } }
         public PZPoint EndPoint { get { return _endPoint; } set { _endPoint = value; } }
         public PZPoint StartPoint { get { return _startPoint; } set { _startPoint = value; } }
         public List<PZPoint> PointList { get { return _pointList; } set { _pointList = value; } }
         public int Ls { get { return _Ls; } set { _Ls = value; } }
 
-        public List<PZDirection> DirectionList { get { return _directionList; } }                
-        
+        public List<PZDirection> DirectionList { get { return _directionList; } }
+
         public List<int> IntensityList { get { return _intensityList; } }
         public List<double> GVFUList { get { return _gvfUList; } }
         public List<double> GVFVList { get { return _gvfVList; } }
         public List<double> GVFMagnitudeList { get { return _gvfMagnitudeList; } }
-        
+
         public PZDirection Cs { set { _Cs = value; } get { return _Cs; } }
         public double Gs { set { _Gs = value; } get { return _Gs; } }
         public double PG { set { _pG = value; } get { return _pG; } }
         public double Is { set { _Is = value; } get { return _Is; } }
         public double PI { set { _pI = value; } get { return _pI; } }
         public double PL { set { _pL = value; } get { return _pL; } }
+
+        public List<LineSegment> StartPointConnectionList { get { return _startPointConnectionList; } }
+        public List<LineSegment> EndPointConnectionList { get { return _endPointConnectionList; } }
+        public List<ConnectionPointType> StartPointConnectionTypeList { get { return _startPointConnectionTypeList; } }
+        public List<ConnectionPointType> EndPointConnectionTypeList { get { return _endPointConnectionTypeList; } }
         #endregion
 
         #region constructors
@@ -80,9 +95,8 @@ namespace eee.Sheffield.PZ.Imaging
             _gvfUList = new List<double>(0);
             _gvfVList = new List<double>(0);
             _gvfMagnitudeList = new List<double>(0);
-
         } // LineSegment()
-        #endregion  
+        #endregion
 
         #region Add points
         /// <summary>
@@ -126,7 +140,7 @@ namespace eee.Sheffield.PZ.Imaging
         /// </summary>
         /// <returns></returns>
         public bool CheckLineSegmentConnectivity(out string errorReport)
-        {            
+        {
             // check two end points
             if (_startPoint == null || _endPoint == null)
             {
@@ -135,7 +149,7 @@ namespace eee.Sheffield.PZ.Imaging
             }
             // check connectivity
             int lengthM1 = _Ls - 1;
-            for (int x = 0; x < lengthM1; x ++)
+            for (int x = 0; x < lengthM1; x++)
             {
                 if (!_pointList[x].Is8NeighbourOf(_pointList[x + 1]))
                 {
@@ -152,8 +166,8 @@ namespace eee.Sheffield.PZ.Imaging
         /// <summary>
         /// merge the current line segment to the other, end to end
         /// only merge point list, so that the merged line segment needs Initialize()
+        /// connections are copied. 
         /// </summary>
-        /// <param name="l"></param>
         /// <returns></returns>
         public LineSegment MergeTo(LineSegment l)
         {
@@ -220,7 +234,47 @@ namespace eee.Sheffield.PZ.Imaging
             }
             return newl;
         } // MergeTo()
-        #endregion       
+
+        /// <summary>
+        /// is the line segment connected with l?
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
+        public bool IsConnectedWith(LineSegment l)
+        {
+            bool isConnected = true;
+            if ((_startPoint.EqualTo(l._startPoint) && _endPoint.EqualTo(l._endPoint))
+                || (_startPoint.EqualTo(l._endPoint) && _endPoint.EqualTo(l._startPoint)))
+                // a loop
+                isConnected = false;
+            else
+            {
+                if (_startPoint.EqualTo(l._startPoint))
+                {
+                    _startPointConnectionList.Add(l);
+                    _startPointConnectionTypeList.Add(ConnectionPointType.Start);
+                }
+                else if (_startPoint.EqualTo(l._endPoint))
+                {
+                    _startPointConnectionList.Add(l);
+                    _startPointConnectionTypeList.Add(ConnectionPointType.End);
+                }
+                else if (_endPoint.EqualTo(l._startPoint))
+                {
+                    _endPointConnectionList.Add(l);
+                    _endPointConnectionTypeList.Add(ConnectionPointType.Start);
+                }
+                else if (_endPoint.EqualTo(l._endPoint))
+                {
+                    _endPointConnectionList.Add(l);
+                    _endPointConnectionTypeList.Add(ConnectionPointType.End);
+                }
+                else
+                    isConnected = false;
+            }
+            return isConnected;
+        } // IsConnectedWith()
+        #endregion
 
         #region prior model
         /// <summary>
@@ -326,7 +380,7 @@ namespace eee.Sheffield.PZ.Imaging
         /// </summary>
         private void AssignDataTerm
             (Bitmap srcImage, PZMath_matrix gvfU, PZMath_matrix gvfV, PZMath_matrix gvfMagnitude,
-            List<PZPoint> pointList,List<PZDirection> directionList,
+            List<PZPoint> pointList, List<PZDirection> directionList,
             ref List<int> intensityList, ref List<double> gvfUList, ref List<double> gvfVList, ref List<double> gvfMagnitudeList)
         {
             // clear lists
@@ -345,7 +399,7 @@ namespace eee.Sheffield.PZ.Imaging
                 double y = point.y;
                 // assign intensity
                 int intensity = Convert.ToInt32(srcImage.GetPixel((int)x, (int)y).R);
-                intensityList.Add(intensity);                               
+                intensityList.Add(intensity);
 
                 // find normal direction
                 PZDirection lineDirection = new PZDirection(directionList[i]);
@@ -357,7 +411,7 @@ namespace eee.Sheffield.PZ.Imaging
                 // asigne GVF info
                 gvfUList.Add(gvfU[(int)y, (int)x]);
                 gvfVList.Add(gvfV[(int)y, (int)x]);
-                gvfMagnitudeList.Add(gvfMagnitude[(int)y, (int)x]);                
+                gvfMagnitudeList.Add(gvfMagnitude[(int)y, (int)x]);
             }
         } // AssignDataTerm()
 
@@ -369,7 +423,7 @@ namespace eee.Sheffield.PZ.Imaging
         /// <param name="gvfVList"></param>
         /// <param name="gvfMagnitudeList"></param>
         /// <returns></returns>
-        private double CalculateGs(List<PZDirection> directionList, 
+        private double CalculateGs(List<PZDirection> directionList,
             List<double> gvfUList, List<double> gvfVList, List<double> gvfMagnitudeList)
         {
             #region debug
@@ -480,7 +534,6 @@ namespace eee.Sheffield.PZ.Imaging
         } // CalculatePI()
         #endregion
 
-
         ///initialize after line segment is obtained.
         #region initialize method
         /// <summary>
@@ -492,6 +545,13 @@ namespace eee.Sheffield.PZ.Imaging
             string errorMessage;
             if (!CheckLineSegmentConnectivity(out errorMessage))
                 throw new ApplicationException("LineSegment::InitializePirorModel(), " + errorMessage);
+
+            // clear connections
+            //_startPointConnectionList.Clear();
+            //_startPointConnectionTypeList.Clear();
+            //_endPointConnectionList.Clear();
+            //_endPointConnectionTypeList.Clear();
+
             // calculate direction list
             CalculateDirection(_pointList, ref _directionList);
             // calculate Cs

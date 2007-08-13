@@ -47,13 +47,15 @@ namespace eee.Sheffield.PZ.Math
 		public static bool Finite(double x)
 		{
 			double y = x - x;
-			bool status = (y == y);
+			//bool status = (y == y);
+            bool status = true;
 			return status;
 		} // Finite()
 
 		public static bool Isnan (double x)
 		{
-			bool status = (x != x);
+			//bool status = (x != x);
+            bool status = false;
 			return status;
 		} // Isnan()
 

@@ -19,7 +19,7 @@ namespace eee.Sheffield.PZ.Imaging
         #region Field
         private List<LineSegment> _configuration = null;
         private List<LineSegment> _joinedConfiguration = null;
-               
+
         // prior model
         private int _n = 0;     // # of current line segments
         private int _nfe = 0;   // # of free ends
@@ -33,13 +33,13 @@ namespace eee.Sheffield.PZ.Imaging
         // data term           
         private double _sumPG = 0.0;
         private double _sumPI = 0.0;
-        
+
         // data 
         private Bitmap _srcImage = null;
         private PZMath_matrix _gvfU = null;
         private PZMath_matrix _gvfV = null;
-        private PZMath_matrix _gvfMagnitude = null;     
-        
+        private PZMath_matrix _gvfMagnitude = null;
+
         // parameters
         // prior model
         private double _w1 = 0.0;
@@ -59,7 +59,7 @@ namespace eee.Sheffield.PZ.Imaging
         private double _Ud = 0.0;
         private double _U = 0.0;
         private double _H = 0.0;
-       
+
         #endregion
 
         #region Property
@@ -116,7 +116,7 @@ namespace eee.Sheffield.PZ.Imaging
         {
             _configuration = new List<LineSegment>(lineSegmentList);
             _joinedConfiguration = new List<LineSegment>(lineSegmentList);
-            
+
             _n = _configuration.Count;
         } // LineSegmentConfiguration()
 
@@ -154,7 +154,7 @@ namespace eee.Sheffield.PZ.Imaging
             _gvfU = c._gvfU;
             _gvfV = c._gvfV;
             _gvfMagnitude = c._gvfMagnitude;
-     
+
             // prior model
             _w1 = c._w1;
             _w2 = c._w2;
@@ -246,8 +246,8 @@ namespace eee.Sheffield.PZ.Imaging
             {
                 _pCPair = new double[_n, _n];
                 Array.Copy(c._pCPair, _pCPair, c._pCPair.Length);
-            }            
-                        
+            }
+
             _w1 = c._w1;
             _w2 = c._w2;
             _w3 = c._w3;
@@ -291,7 +291,7 @@ namespace eee.Sheffield.PZ.Imaging
             //if (_pCPair != null)
             //    Array.Clear(_pCPair, 0, _pCPair.Length);
 
-            _n = 0;            
+            _n = 0;
         } // Empty()
         #endregion
 
@@ -311,10 +311,6 @@ namespace eee.Sheffield.PZ.Imaging
             InitLineSegmentIndex(ref _configuration);
         } // InitLineSegmentIndex()
 
-        /// <summary>
-        /// join segments
-        /// </summary>
-        /// <param name="lineSegmentList"></param>
         private List<LineSegment> JoinSegments(List<LineSegment> lineSegmentList)
         {
             bool continueSearch = true;
@@ -431,11 +427,11 @@ namespace eee.Sheffield.PZ.Imaging
                         if (i == j)
                             continue;
                         LineSegment search = lineSegmentList[j];
-                        if (current.StartPoint.Equals(search.StartPoint)
-                            || current.StartPoint.Equals(search.EndPoint))
+                        if (current.StartPoint.EqualTo(search.StartPoint)
+                            || current.StartPoint.EqualTo(search.EndPoint))
                             startPointConnected = true;
-                        if (current.EndPoint.Equals(search.StartPoint)
-                            || current.EndPoint.Equals(search.EndPoint))
+                        if (current.EndPoint.EqualTo(search.StartPoint)
+                            || current.EndPoint.EqualTo(search.EndPoint))
                             endPointConnected = true;
                     }
                     if (!startPointConnected)
@@ -459,11 +455,11 @@ namespace eee.Sheffield.PZ.Imaging
         /// <param name="pc"></param>
         /// <param name="lineSegmentList"></param>
         private List<double> CalculatePC(List<LineSegment> lineSegmentList, double thetaMax, ref double[,] pCPair)
-        {            
+        {
             List<double> pc = new List<double>(0);
             //if (pCPair != null)
             //    Array.Clear(pCPair, 0, pCPair.Length);   
-            pCPair = null;     
+            pCPair = null;
             //pCPair = new double[lineSegmentList.Count, lineSegmentList.Count];
             double thetaij = 0;
             double pcsisj = 0.0;
@@ -489,7 +485,7 @@ namespace eee.Sheffield.PZ.Imaging
                             continue;
                         LineSegment sj = lineSegmentList[j];
                         // start point connected/joined
-                        if (si.StartPoint.Equals(sj.StartPoint))
+                        if (si.StartPoint.EqualTo(sj.StartPoint))
                         {
                             // thetas
                             thetaij = si.Cs.GetAngle(sj.Cs);
@@ -511,7 +507,7 @@ namespace eee.Sheffield.PZ.Imaging
                             //pCPair[i, j] = pcsisj;
 
                         }
-                        if (si.StartPoint.Equals(sj.EndPoint))
+                        if (si.StartPoint.EqualTo(sj.EndPoint))
                         {
                             // thetas
                             thetaij = si.Cs.GetAngle(sj.Cs);
@@ -533,7 +529,7 @@ namespace eee.Sheffield.PZ.Imaging
                             //pCPair[i, j] = pcsisj;
                         }
                         // end point connected/joined
-                        if (si.EndPoint.Equals(sj.StartPoint))
+                        if (si.EndPoint.EqualTo(sj.StartPoint))
                         {
                             // thetas
                             thetaij = si.Cs.GetAngle(sj.Cs);
@@ -553,7 +549,7 @@ namespace eee.Sheffield.PZ.Imaging
                             pc.Add(pcsisj);
                             //pCPair[i, j] = pcsisj;
                         }
-                        if (si.EndPoint.Equals(sj.EndPoint))
+                        if (si.EndPoint.EqualTo(sj.EndPoint))
                         {
                             // thetas
                             thetaij = si.Cs.GetAngle(sj.Cs);
@@ -661,7 +657,7 @@ namespace eee.Sheffield.PZ.Imaging
             double sumPL = 0.0;
             int count = lineSegmentList.Count;
             // for each line segment
-            for (int s = 0; s < count; s ++)
+            for (int s = 0; s < count; s++)
             {
                 // calculate PL
                 lineSegmentList[s].CalculatePL(totalL, averageL);
@@ -720,19 +716,19 @@ namespace eee.Sheffield.PZ.Imaging
 
                 // # of segments, free segments, and free end
                 n = count;
-                FreeEndsFreeSegments(lineSegmentList, out nfe, out nf);                
+                FreeEndsFreeSegments(lineSegmentList, out nfe, out nf);
                 // calculate pC(si,sj)
                 //if (pC != null)
                 //    pC.Clear();
                 pC = CalculatePC(lineSegmentList, thetaMax, ref pCPair);
                 // calculate sum pc
-                sumPC = CalculateSumPC(pC);                
+                sumPC = CalculateSumPC(pC);
                 // join segment
                 joinedLineSegmentList = JoinSegments(lineSegmentList);
                 // total length & average length
                 totalL = CalculateTotalL(joinedLineSegmentList);
                 averageL = CalculateAverageL(n, totalL);
-                sumPL = CalculateSumPL(ref joinedLineSegmentList, totalL, averageL);                
+                sumPL = CalculateSumPL(ref joinedLineSegmentList, totalL, averageL);
 
                 // calculate hp(S)
                 double up = w1 * n + w2 * nf + w3 * nfe
@@ -744,7 +740,7 @@ namespace eee.Sheffield.PZ.Imaging
         {
             _Up = CalculateUP(
                 _configuration, out _joinedConfiguration,
-                _thetaMax, _w1, _w2, _w3, _wC, _wL,                
+                _thetaMax, _w1, _w2, _w3, _wC, _wL,
                 out _n, out _nf, out _nfe,
                 out _totalL, out _averageL, out _sumPC, out _sumPL,
                 ref _pC, ref _pCPair);
@@ -846,7 +842,7 @@ namespace eee.Sheffield.PZ.Imaging
         /// <returns></returns>
         private double CalculateUD(ref List<LineSegment> lineSegmentList,
             Bitmap srcImage, PZMath_matrix gvfU, PZMath_matrix gvfV, PZMath_matrix gvfMagnitude,
-            double wG, double wI, 
+            double wG, double wI,
             double Gt, double It, double kI,
             out double sumPG, out double sumPI)
         {
@@ -857,7 +853,7 @@ namespace eee.Sheffield.PZ.Imaging
             // calculate sum(pI(s))
             sumPI = CalculateSumPI(ref lineSegmentList, It, kI);
             double ud = 0;
-            ud = wG * sumPG + wI * sumPI;            
+            ud = wG * sumPG + wI * sumPI;
             return ud;
         } // CalculateUD()
         public void CalculateUD()
@@ -895,7 +891,7 @@ namespace eee.Sheffield.PZ.Imaging
         {
             _H = CalculateH(_U);
         } // CalculateH()
-        #endregion                    
+        #endregion
 
         #region util
         /// <summary>
@@ -918,16 +914,16 @@ namespace eee.Sheffield.PZ.Imaging
             List<int> removeIndexList = new List<int>(0);
             // search loops, record the one with higher Gs value
             for (int i = 0; i < nM1; i++)
-                // for each line segment
+            // for each line segment
             {
                 LineSegment lineSegmenti = (LineSegment)_configuration[i];
                 for (int j = i + 1; j < _n; j++)
                 {
                     LineSegment lineSegmentj = (LineSegment)_configuration[j];
-                    if ((lineSegmenti.StartPoint.Equals(lineSegmentj.StartPoint) 
-                        && lineSegmenti.EndPoint.Equals(lineSegmentj.EndPoint))
-                        || (lineSegmenti.StartPoint.Equals(lineSegmentj.EndPoint)
-                        && lineSegmenti.EndPoint.Equals(lineSegmentj.StartPoint)))
+                    if ((lineSegmenti.StartPoint.EqualTo(lineSegmentj.StartPoint)
+                        && lineSegmenti.EndPoint.EqualTo(lineSegmentj.EndPoint))
+                        || (lineSegmenti.StartPoint.EqualTo(lineSegmentj.EndPoint)
+                        && lineSegmenti.EndPoint.EqualTo(lineSegmentj.StartPoint)))
                     {
                         if (lineSegmenti.Gs > lineSegmentj.Gs)
                             removeIndexList.Add(i);
@@ -961,17 +957,17 @@ namespace eee.Sheffield.PZ.Imaging
                 for (int j = i + 1; j < lineSegmentCount; j++)
                 {
                     LineSegment lineSegmentj = (LineSegment)joinedLineSegmentConfiguration[j];
-                    
+
                     // search start point
-                    if (lineSegmenti.StartPoint.Equals(lineSegmentj.StartPoint)
-                        || lineSegmenti.StartPoint.Equals(lineSegmentj.EndPoint))
+                    if (lineSegmenti.StartPoint.EqualTo(lineSegmentj.StartPoint)
+                        || lineSegmenti.StartPoint.EqualTo(lineSegmentj.EndPoint))
                     {
                         startFree = false;
                         break;
                     }
                     // search end point
-                    if (lineSegmenti.EndPoint.Equals(lineSegmentj.StartPoint)
-                        || lineSegmenti.EndPoint.Equals(lineSegmentj.EndPoint))
+                    if (lineSegmenti.EndPoint.EqualTo(lineSegmentj.StartPoint)
+                        || lineSegmenti.EndPoint.EqualTo(lineSegmentj.EndPoint))
                     {
                         endFree = false;
                         break;
@@ -1038,8 +1034,8 @@ namespace eee.Sheffield.PZ.Imaging
                     int x = (int)p.x;
                     int y = (int)p.y;
                     dstImage.SetPixel(x, y, Color.Blue);
-                    dstImage.SetPixel((int) current.StartPoint.x, (int) current.StartPoint.y, Color.Red);
-                    dstImage.SetPixel((int) current.EndPoint.x, (int) current.EndPoint.y, Color.Red);
+                    dstImage.SetPixel((int)current.StartPoint.x, (int)current.StartPoint.y, Color.Red);
+                    dstImage.SetPixel((int)current.EndPoint.x, (int)current.EndPoint.y, Color.Red);
                 }
             }
             return dstImage;
@@ -1050,7 +1046,7 @@ namespace eee.Sheffield.PZ.Imaging
         } // DrawLineSegments()
 
         // draw gs threshold line segments
-        private Bitmap DrawGsThreshold(Bitmap srcImage, List<LineSegment> lineSegmentList, double gt) 
+        private Bitmap DrawGsThreshold(Bitmap srcImage, List<LineSegment> lineSegmentList, double gt)
         {
             int width = srcImage.Width;
             int height = srcImage.Height;
@@ -1084,7 +1080,7 @@ namespace eee.Sheffield.PZ.Imaging
             // draw line segment on dstImg
             int length = lineSegmentList.Count;
             for (int i = 0; i < length; i++)
-            {                
+            {
                 LineSegment current = lineSegmentList[i];
                 if (current.Gs > gt)
                     continue;
@@ -1108,7 +1104,7 @@ namespace eee.Sheffield.PZ.Imaging
                 _configuration[s].CalculateGs();
             return DrawGsThreshold(srcImage, _configuration, gt);
         }
-        
+
         private Bitmap DrawGsThreshold(Bitmap srcImage, List<LineSegment> lineSegmentList)
         {
             int width = srcImage.Width;
@@ -1144,7 +1140,7 @@ namespace eee.Sheffield.PZ.Imaging
             int length = lineSegmentList.Count;
             for (int i = 0; i < length; i++)
             {
-                LineSegment current = lineSegmentList[i];                
+                LineSegment current = lineSegmentList[i];
                 int points = current.Ls;
                 for (int j = 0; j < points; j++)
                 {
@@ -1174,7 +1170,7 @@ namespace eee.Sheffield.PZ.Imaging
                 _configuration[s].CalculateGs();
             return DrawGsThreshold(srcImage, _configuration);
         }
-        
+
         // draw Is threshold line segments
         private Bitmap DrawIsThreshold(Bitmap srcImage, List<LineSegment> lineSegmentList, double It)
         {
@@ -1234,7 +1230,7 @@ namespace eee.Sheffield.PZ.Imaging
                 _configuration[s].CalculateIs();
             return DrawIsThreshold(srcImage, _configuration, It);
         }
-        
+
         public void WriteLineSegmentsFile(string fileName)
         {
             FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -1248,13 +1244,13 @@ namespace eee.Sheffield.PZ.Imaging
                 for (int j = 0; j < length; j++)
                 {
                     writer.WriteLine(String.Format("{0,20:f}{1,20:f}", l.PointList[j].x, l.PointList[j].y));
-                }                   
+                }
             }
             writer.Flush();
             writer.Close();
             fileStream.Close();
         }
-        
+
         public void WriteEndPointsFile(string fileName)
         {
             FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -1275,7 +1271,7 @@ namespace eee.Sheffield.PZ.Imaging
             writer.Close();
             fileStream.Close();
         }
-        
+
         public void WriteGsFile(string fileName)
         {
             FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -1293,7 +1289,7 @@ namespace eee.Sheffield.PZ.Imaging
             writer.Close();
             fileStream.Close();
         }
-        
+
         public void WritePGFile(string fileName)
         {
             FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -1313,12 +1309,12 @@ namespace eee.Sheffield.PZ.Imaging
         }
 
         public void WriteDebugDetails(string fileName, FileMode fileMode, FileAccess fileAccess)
-        {            
+        {
             FileStream fileStream = new FileStream(fileName, fileMode, fileAccess);
             StreamWriter writer = new StreamWriter(fileStream);
             writer.WriteLine("-- prior model --");
             // n nf nfe sumPC totalL averageL sumPL, Up
-            writer.WriteLine(String.Format("{0,-6}{1,-6}{2,-6}{3, -12}{4, -12}{5, -12}{6, -12}{7,-12}", 
+            writer.WriteLine(String.Format("{0,-6}{1,-6}{2,-6}{3, -12}{4, -12}{5, -12}{6, -12}{7,-12}",
                 "n", "nf", "nfe", "sumPC", "total L", "ave L", "sumPL", "Up"));
             writer.WriteLine(String.Format("{0,-6:d}{1,-6:d}{2,-6:d}{3,-12:0.00e+000}{4, -12:d}{5, -12:0.00e+000}{6, -12:0.00e+000}{7, -12:0.00e+000}",
                 _n, _nf, _nfe, _sumPC, (int)_totalL, _averageL, _sumPL, _Up));
@@ -1377,8 +1373,8 @@ namespace eee.Sheffield.PZ.Imaging
                     _configuration[s].PI, _configuration[s].Gs, _configuration[s].PG));
             }
             // si, sj, Csi, Csj, pC(si, sj)
-            writer.WriteLine(String.Format("{0,-5}{1,-5}{2,-15}{3,-15}{4,-12}", 
-                "si", "sj", "Csi", "Csj", "pC(si, sj)"));            
+            writer.WriteLine(String.Format("{0,-5}{1,-5}{2,-15}{3,-15}{4,-12}",
+                "si", "sj", "Csi", "Csj", "pC(si, sj)"));
             for (int i = 0; i < _n; i++)
             {
                 for (int j = i; j < _n; j++)
@@ -1433,7 +1429,7 @@ namespace eee.Sheffield.PZ.Imaging
             // start from full configuration
             int fullLength = this.N;
             int[] input = new int[fullLength];
-            for (int i = 0; i < fullLength; i ++)
+            for (int i = 0; i < fullLength; i++)
                 input[i] = i;
 
             bool first = true;
@@ -1450,17 +1446,17 @@ namespace eee.Sheffield.PZ.Imaging
                     List<int> complement = new List<int>(input);
                     for (int i = 0; i < l; i++)
                         complement.Remove(combination[i]);
-                    
+
                     // get the configuration according the combination
                     for (int i = 0; i < fullLength - l; i++)
                         c.RemoveAtIndex(complement[i]);
-                    
+
                     // calculate Up, Ud, U an H of the current configuration
                     c.CalculateUP();
                     c.CalculateUD();
                     c.CalculateU();
                     c.CalculateH();
-                    
+
                     // output line segment details
                     if (first)
                     {

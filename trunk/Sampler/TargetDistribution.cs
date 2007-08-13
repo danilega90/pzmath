@@ -57,6 +57,8 @@ namespace eee.Sheffield.PZ.Math
 
         public double Evaluate(object x)
         {
+            bool isSupported = true;
+
             if (x is double[])
             {
                 if (TargetDistributionFunction == null)
@@ -77,9 +79,12 @@ namespace eee.Sheffield.PZ.Math
             }
             else
             {
-                throw new ApplicationException("TargetDistribution::Evaluate(), cannot recognize target distribution function");
-                return 0.0;
+                isSupported = false;  
             }
+
+            if (!isSupported)
+                throw new ApplicationException("TargetDistribution::Evaluate(), cannot recognize target distribution function");
+            return 0.0;
         } // Evaluate()
         #endregion
     }
