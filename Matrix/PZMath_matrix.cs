@@ -1058,6 +1058,67 @@ namespace eee.Sheffield.PZ.Math
             return dstMatrix;
         } // AndTrueFalse2D()       
 
+        /// <summary>
+        /// kernel is a double template
+        /// boolean AND operation for 1 and 0, 
+        /// don't care for 0.5
+        /// </summary>
+        /// <param name="kernel"></param>
+        /// <returns></returns>
+        public PZMath_matrix AndTrueFalseDontCare2D(double[,] kernel)
+        {
+            // kernel information
+            int hk = kernel.GetLength(1);
+            int wk = kernel.GetLength(0);
+            int halfHk = (hk - 1) / 2;
+            int halfWk = (wk - 1) / 2;
+
+            // matrix info
+            int height = row;
+            int width = col;
+
+            PZMath_matrix expandSrcMatrix = this.BoundFillingBackgroundIntensityExpand(hk, wk, 255);
+            bool[,] expandSrcBoolMatrix = expandSrcMatrix.ConvertToBoolMatrix(125);
+
+            // prepare dst bool matrix
+            int expandHeight = expandSrcBoolMatrix.GetLength(1);
+            int expandWidth = expandSrcBoolMatrix.GetLength(0);
+            bool[,] expandDstBoolMatrix = new bool[expandWidth, expandHeight];
+
+            int xStart = halfWk;
+            int xEnd = width + halfWk;
+            int yStart = halfHk;
+            int yEnd = height + halfHk;
+
+            for (int x = xStart; x < xEnd; x++)
+            {
+                for (int y = yStart; y < yEnd; y++)
+                {
+                    bool isHit = true;
+                    // inside kernel
+                    for (int kx = -1 * halfWk; kx <= halfWk; kx++)
+                    {
+                        for (int ky = -1 * halfHk; ky <= halfHk; ky++)
+                        {
+                            // kernel is a double[,]
+                            // expandSrcBoolMatrix, and expandDstBoolMatrix are bool[,]
+                            if ((kernel[kx + halfWk, ky + halfHk] == 1 && !expandSrcBoolMatrix[x + kx, y + ky])
+                                || (kernel[kx + halfWk, ky + halfHk] == 0 && expandSrcBoolMatrix[x + kx, y + ky]))
+                            {
+                                isHit = false;
+                                break;
+                            }
+                        }
+                    }
+                    expandDstBoolMatrix[x, y] = isHit;
+                }
+            }
+
+            PZMath_matrix expandDstMatrix = new PZMath_matrix(expandDstBoolMatrix);
+            PZMath_matrix dstMatrix = expandDstMatrix.BoundFillingBackgroundIntensityShrink(hk, wk);
+
+            return dstMatrix;
+        } // AndTrueFalseDontCare2D()     
         #endregion
         
         #region multiresolution methods
