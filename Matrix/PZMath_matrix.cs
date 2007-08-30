@@ -1119,6 +1119,27 @@ namespace eee.Sheffield.PZ.Math
 
             return dstMatrix;
         } // AndTrueFalseDontCare2D()     
+
+
+        /// <summary>
+        /// return Percentile of the elements of the matrix
+        /// </summary>
+        /// <param name="percentile"></param>
+        /// <returns></returns>
+        public double Percentile(int percentile)
+        {
+            double[] copyData = new double[length];
+            Array.Copy(data, copyData, length);
+            Array.Sort(copyData);
+            double rank = (double)percentile * ((double)length + 1.0) / 100.0;
+            int rankd = (int)System.Math.Floor(rank);
+            int ranku = (int)System.Math.Ceiling(rank);
+            rankd = rankd >= length ? length - 1 : rankd;
+            ranku = ranku >= length ? length - 1 : ranku;
+            double p = (copyData[rankd] + copyData[ranku]) / 2.0;
+            return p;
+        } // Percentile()
+
         #endregion
         
         #region multiresolution methods
@@ -1293,7 +1314,7 @@ namespace eee.Sheffield.PZ.Math
 
         #endregion
 
-        #region output methods
+        #region I/O methods
         public void DebugWriteLine()
 			// out put matrix data as Debug.WriteLine()
 		{
@@ -1463,6 +1484,20 @@ namespace eee.Sheffield.PZ.Math
         #endregion
 
         #region example codes
+        public static void IOExample()
+        {
+            double[,] m = {{2, 3, 3, 5},
+                           {6, 6, 8, 9}, 
+                           {10, 11, 12, 13},
+                           {14, 15, 17, 17}};
+            PZMath_matrix matrix = new PZMath_matrix(m);
+            matrix.WriteFile("matrix.txt");
+
+            PZMath_matrix readMatrix = new PZMath_matrix();
+            readMatrix.ReadFile("matrix.txt");
+            readMatrix.ScreenWriteLine();
+        }
+
         /// <summary>
         /// LU decomposition and LU inverse example
         /// </summary>
