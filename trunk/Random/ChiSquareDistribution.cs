@@ -1,4 +1,4 @@
-// eee.Sheffield.PZ.Math
+﻿// eee.Sheffield.PZ.Math
 //
 // Copyright ?Ping Zou, 2007
 // sg71.cherub@gmail.com

@@ -37,6 +37,10 @@ namespace eee.Sheffield.PZ.Imaging
         private List<double> _gvfMagnitudeList = null;
 
         private double _Gs = 0.0; // Gs
+        public double _angle = 0.0; // angle
+        public List<double> _GsList;   // Gs List
+        public List<double> _angleList;    // angle List
+
         private double _pG = 0.0; // pG(s)
         private double _Is = 0.0; // average intensity
         private double _pI = 0.0; // pI(s)      
@@ -133,7 +137,7 @@ namespace eee.Sheffield.PZ.Imaging
             return _Ls;
         } // AddPoint()
         #endregion
-
+       
         #region valid check
         /// <summary>
         /// check line segment connectivity
@@ -274,6 +278,39 @@ namespace eee.Sheffield.PZ.Imaging
             }
             return isConnected;
         } // IsConnectedWith()
+
+        /// <summary>
+        /// is the line segment part of l?
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
+        public bool IsPartOf(LineSegment l)
+        {
+            if (_pointList.Count > l.PointList.Count)
+                return false;
+
+
+            foreach (PZPoint p in _pointList)
+            {
+                bool pIsPart = false;
+
+                foreach (PZPoint q in l.PointList)
+                {
+                    if (p.EqualTo(q))
+                    {
+                        pIsPart = true;
+                        break;
+                    }
+                }
+
+                if (!pIsPart)
+                {
+                    return false;
+                }                
+            }
+
+            return true;
+        } // IsPartOf()
         #endregion
 
         #region prior model
@@ -390,7 +427,7 @@ namespace eee.Sheffield.PZ.Imaging
             gvfMagnitudeList.Clear();
 
             int length = pointList.Count;
-
+            double offset = 1.0;
             // for each point
             for (int i = 0; i < length; i++)
             {
@@ -405,8 +442,8 @@ namespace eee.Sheffield.PZ.Imaging
                 PZDirection lineDirection = new PZDirection(directionList[i]);
                 lineDirection.Rotate(90);
                 // offset 1 or 2 pixels
-                y += lineDirection.y * 2.0;
-                x += lineDirection.x * 2.0;
+                y += lineDirection.y * offset;
+                x += lineDirection.x * offset;
 
                 // asigne GVF info
                 gvfUList.Add(gvfU[(int)y, (int)x]);
@@ -435,6 +472,10 @@ namespace eee.Sheffield.PZ.Imaging
             #endregion
 
             int length = directionList.Count;
+            
+            _GsList = new List<double>(length);
+            _angleList = new List<double>(length);
+
             double Gs = 0.0;
             // for each point
             for (int i = 0; i < length; i++)
@@ -450,6 +491,9 @@ namespace eee.Sheffield.PZ.Imaging
                 //giy *= giMagnitude;
                 guis = System.Math.Abs(gix * uis.x + giy * uis.y);
 
+                _GsList.Add(guis);
+                _angleList.Add(System.Math.Acos(guis));
+
                 #region debug
                 //w.WriteLine(String.Format(
                 //    "{0,20:0.0000}{1,20:0.0000}{2,20:0.0000}{3,20:0.0000}{4,20:0.0000}{5,20:0.0000}{6,20:0.0000}", 
@@ -459,6 +503,8 @@ namespace eee.Sheffield.PZ.Imaging
                 Gs += guis;
             }
             Gs /= (double)length;
+
+            _angle = System.Math.Acos(Gs);
 
             #region debug
             //w.Flush();
@@ -542,9 +588,9 @@ namespace eee.Sheffield.PZ.Imaging
         public void InitializePriorModel()
         {
             // check line segment validity
-            string errorMessage;
-            if (!CheckLineSegmentConnectivity(out errorMessage))
-                throw new ApplicationException("LineSegment::InitializePirorModel(), " + errorMessage);
+            //string errorMessage;
+            //if (!CheckLineSegmentConnectivity(out errorMessage))
+            //    throw new ApplicationException("LineSegment::InitializePirorModel(), " + errorMessage);
 
             // clear connections
             //_startPointConnectionList.Clear();

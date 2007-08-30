@@ -25,7 +25,9 @@ namespace eee.Sheffield.PZ.Imaging
         private int _nfe = 0;   // # of free ends
         private int _nf = 0;   // # of free line segments
         private List<double> _pC = null;    // pc 
-        private double[,] _pCPair = null;   // pc(si, sj)                
+        private double[,] _pCPair = null;   // pc(si, sj) 
+        public List<double> _cs = null;     // cs
+       
         private double _totalL = 0.0;      // total length
         private double _averageL = 0.0;    // average length
         private double _sumPC = 0.0;
@@ -116,7 +118,7 @@ namespace eee.Sheffield.PZ.Imaging
         {
             _configuration = new List<LineSegment>(lineSegmentList);
             _joinedConfiguration = new List<LineSegment>(lineSegmentList);
-
+            RemoveShortLineSegment();
             _n = _configuration.Count;
         } // LineSegmentConfiguration()
 
@@ -175,6 +177,29 @@ namespace eee.Sheffield.PZ.Imaging
         #endregion
 
         #region Add/Remove method
+
+        /// <summary>
+        /// remove short (Ls <= 2 ) line segment
+        /// </summary>
+        public void RemoveShortLineSegment()
+        {
+            int index = 0;
+            int lineSegmentCount = _configuration.Count;
+            while (index < lineSegmentCount)
+            {
+                LineSegment l = (LineSegment)_configuration[index];
+                if (l.PointList.Count <= 2)
+                {
+                    _configuration.RemoveAt(index);
+                    lineSegmentCount--;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+        } // RemoveShortLineSegment()
+
         /// <summary>
         /// remove a line segment at its index
         /// </summary>
@@ -457,6 +482,8 @@ namespace eee.Sheffield.PZ.Imaging
         private List<double> CalculatePC(List<LineSegment> lineSegmentList, double thetaMax, ref double[,] pCPair)
         {
             List<double> pc = new List<double>(0);
+            _cs = new List<double>(0);
+
             //if (pCPair != null)
             //    Array.Clear(pCPair, 0, pCPair.Length);   
             pCPair = null;
@@ -466,23 +493,26 @@ namespace eee.Sheffield.PZ.Imaging
             double pi = System.Math.PI;
             // search connected/joined pair
             int lineSegments = lineSegmentList.Count;
+            int lineSegmentsM1 = lineSegments - 1;
             if (lineSegments == 1)
             {
                 pc.Add(0.0);
+                _cs.Add(0.0);
                 //pCPair[0, 0] = 0.0;
             }
             else
             {
                 #region search connected/joined pair
+                
                 // for each line segment
-                for (int i = 0; i < lineSegments; i++)
+                for (int i = 0; i < lineSegmentsM1; i++)
                 {
                     LineSegment si = lineSegmentList[i];
                     // seach for the other, half configuration
-                    for (int j = i; j < lineSegments; j++)
+                    for (int j = i + 1; j < lineSegments; j++)
                     {
-                        if (i == j)
-                            continue;
+                        //if (i == j)
+                        //    continue;
                         LineSegment sj = lineSegmentList[j];
                         // start point connected/joined
                         if (si.StartPoint.EqualTo(sj.StartPoint))
@@ -498,12 +528,13 @@ namespace eee.Sheffield.PZ.Imaging
                                 pcsisj = -1.0 * Sigma(thetaij, thetaMax);
                             else
                                 pcsisj = 1.0;
-                            if (Double.IsNaN(pcsisj))
-                            {
-                                System.Console.Write("stop here");
-                                thetaij = si.Cs.GetAngle(sj.Cs);
-                            }
+                            //if (Double.IsNaN(pcsisj))
+                            //{
+                            //    System.Console.Write("stop here");
+                            //    thetaij = si.Cs.GetAngle(sj.Cs);
+                            //}
                             pc.Add(pcsisj);
+                            _cs.Add(thetaij);
                             //pCPair[i, j] = pcsisj;
 
                         }
@@ -520,12 +551,13 @@ namespace eee.Sheffield.PZ.Imaging
                                 pcsisj = -1.0 * Sigma(thetaij, thetaMax);
                             else
                                 pcsisj = 1.0;
-                            if (Double.IsNaN(pcsisj))
-                            {
-                                System.Console.Write("stop here");
-                                thetaij = si.Cs.GetAngle(sj.Cs);
-                            }
+                            //if (Double.IsNaN(pcsisj))
+                            //{
+                            //    System.Console.Write("stop here");
+                            //    thetaij = si.Cs.GetAngle(sj.Cs);
+                            //}
                             pc.Add(pcsisj);
+                            _cs.Add(thetaij);
                             //pCPair[i, j] = pcsisj;
                         }
                         // end point connected/joined
@@ -541,12 +573,13 @@ namespace eee.Sheffield.PZ.Imaging
                                 pcsisj = -1.0 * Sigma(thetaij, thetaMax);
                             else
                                 pcsisj = 1.0;
-                            if (Double.IsNaN(pcsisj))
-                            {
-                                System.Console.Write("stop here");
-                                thetaij = si.Cs.GetAngle(sj.Cs);
-                            }
+                            //if (Double.IsNaN(pcsisj))
+                            //{
+                            //    System.Console.Write("stop here");
+                            //    thetaij = si.Cs.GetAngle(sj.Cs);
+                            //}
                             pc.Add(pcsisj);
+                            _cs.Add(thetaij);
                             //pCPair[i, j] = pcsisj;
                         }
                         if (si.EndPoint.EqualTo(sj.EndPoint))
@@ -562,12 +595,13 @@ namespace eee.Sheffield.PZ.Imaging
                                 pcsisj = -1.0 * Sigma(thetaij, thetaMax);
                             else
                                 pcsisj = 1.0;
-                            if (Double.IsNaN(pcsisj))
-                            {
-                                System.Console.Write("stop here");
-                                thetaij = si.Cs.GetAngle(sj.Cs);
-                            }
+                            //if (Double.IsNaN(pcsisj))
+                            //{
+                            //    System.Console.Write("stop here");
+                            //    thetaij = si.Cs.GetAngle(sj.Cs);
+                            //}
                             pc.Add(pcsisj);
+                            _cs.Add(thetaij);
                             //pCPair[i, j] = pcsisj;
                         }
                     } // for j
@@ -576,6 +610,7 @@ namespace eee.Sheffield.PZ.Imaging
             }
             return pc;
         } // CalculatePC()
+
         public void CalculatePC()
         {
             _pC = CalculatePC(_configuration, _thetaMax, ref _pCPair);
@@ -1045,11 +1080,41 @@ namespace eee.Sheffield.PZ.Imaging
             return DrawLineSegments(srcImage, _configuration);
         } // DrawLineSegments()
 
+        public PZMath_matrix DrawGsMatrix(Bitmap srcImage)
+        {
+            foreach (LineSegment l in _configuration)
+                l.CalculateGs();
+            return DrawGsMatrix(srcImage, _configuration);
+        }
+
+        private PZMath_matrix DrawGsMatrix(Bitmap srcImage, List<LineSegment> lineSegmentList)
+        {
+            int width = srcImage.Width;
+            int height = srcImage.Height;
+
+            PZMath_matrix dstMatrix = new PZMath_matrix(height, width);
+            dstMatrix.Setall(1.0);
+
+            foreach (LineSegment l in lineSegmentList)
+            {
+                int points = l.Ls;
+                for (int j = 0; j < points; j++)
+                {
+                    PZPoint p = l.PointList[j];
+                    int x = (int)p.x;
+                    int y = (int)p.y;
+                    dstMatrix[y, x] = l.Gs;
+                }
+            }
+
+            return dstMatrix;
+        } // DrawGsMatrix()
+
         // draw gs threshold line segments
         private Bitmap DrawGsThreshold(Bitmap srcImage, List<LineSegment> lineSegmentList, double gt)
         {
             int width = srcImage.Width;
-            int height = srcImage.Height;
+            int height = srcImage.Height;    
             Bitmap dstImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
 
             #region set background white
@@ -1290,6 +1355,64 @@ namespace eee.Sheffield.PZ.Imaging
             fileStream.Close();
         }
 
+        public void WriteGsHistogram(string fileName)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream);
+            // for each line segment
+            foreach (LineSegment l in _configuration)
+                writer.WriteLine(l.Gs);
+            writer.Flush();
+            writer.Close();
+            fileStream.Close();
+        }
+
+        public void WriteGsListHistogram(string fileName)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream);
+            // for each line segment
+            foreach (LineSegment l in _configuration)
+            {
+                int i = 1;  // no junctions/ends
+                int countM1 = l._GsList.Count - 1;
+                for (; i < countM1; i++)
+                    writer.WriteLine(l._GsList[i]);
+            }
+            writer.Flush();
+            writer.Close();
+            fileStream.Close();
+        } // WriteGsListHistogram()
+
+        public void WriteAngleHistogram(string fileName)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream);
+            // for each line segment
+            foreach (LineSegment l in _configuration)
+                writer.WriteLine(l._angle);
+            writer.Flush();
+            writer.Close();
+            fileStream.Close();
+        } // WriteAngleHistogram()
+
+        public void WriteAngleListHistogram(string fileName)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream);
+            // for each line segment            
+            foreach (LineSegment l in _configuration)
+            {
+                int i = 1;  // no junctions/ends 
+                int countM1 = l._angleList.Count - 1;
+                for (; i < countM1; i++)
+                    writer.WriteLine(l._angleList[i]);
+            }
+            writer.Flush();
+            writer.Close();
+            fileStream.Close();
+        } // WriteAngleListHistogram
+
         public void WritePGFile(string fileName)
         {
             FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -1307,6 +1430,32 @@ namespace eee.Sheffield.PZ.Imaging
             writer.Close();
             fileStream.Close();
         }
+
+        public void WriteCsHistogram(string fileName)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream);        
+            foreach (double cs in _cs)
+            {                
+                writer.WriteLine(cs);
+            }
+            writer.Flush();
+            writer.Close();
+            fileStream.Close();
+        } // WriteCsHistogram()
+
+        public void WritePCHistogram(string fileName)
+        {
+            FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(fileStream);          
+            foreach (double pc in _pC)
+            {
+                writer.WriteLine(pc);
+            }
+            writer.Flush();
+            writer.Close();
+            fileStream.Close();
+        } // WritePCHistogram()
 
         public void WriteDebugDetails(string fileName, FileMode fileMode, FileAccess fileAccess)
         {
@@ -1421,6 +1570,7 @@ namespace eee.Sheffield.PZ.Imaging
 
             return dstMatrix;
         } // PZMath_matrix()
+
         #endregion
 
         #region synthetic model study
