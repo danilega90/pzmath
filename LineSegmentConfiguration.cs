@@ -181,7 +181,7 @@ namespace eee.Sheffield.PZ.Imaging
         /// <summary>
         /// remove short (Ls <= 2 ) line segment
         /// </summary>
-        public void RemoveShortLineSegment()
+        private void RemoveShortLineSegment()
         {
             int index = 0;
             int lineSegmentCount = _configuration.Count;

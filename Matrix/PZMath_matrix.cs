@@ -164,6 +164,15 @@ namespace eee.Sheffield.PZ.Math
             for (int i = 0; i < v.Size; i++)
                 data[i] = v[i];
         } // PZMath_matrix(PZMath_vector, CBLAS_TRANSPOSE)
+
+        /// <summary>
+        /// generate a matrix by reading file
+        /// </summary>
+        /// <param name="fileName"></param>
+        public PZMath_matrix(string fileName)
+        {
+            ReadFile(fileName);
+        }
 		#endregion
 
 		#region properties
