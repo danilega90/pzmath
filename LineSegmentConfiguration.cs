@@ -11,10 +11,13 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using CH.Combinations;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace eee.Sheffield.PZ.Imaging
 {
-    public class LineSegmentConfiguration
+    [Serializable]
+    public class LineSegmentConfiguration : ICloneable
     {
         #region Field
         private List<LineSegment> _configuration = null;
@@ -1621,6 +1624,30 @@ namespace eee.Sheffield.PZ.Imaging
             }
         } // SynthethicModelStudy()
         #endregion
+
+
+        public object Clone(bool doDeepCopy)
+        {
+            if (doDeepCopy)
+            {
+                BinaryFormatter BF = new BinaryFormatter();
+                MemoryStream memStream = new MemoryStream();
+
+                BF.Serialize(memStream, this);
+                memStream.Position = 0;
+
+                return (BF.Deserialize(memStream));
+            }
+            else
+            {
+                return (this.MemberwiseClone());
+            }
+        }
+
+        public object Clone()
+        {
+            return (Clone(false));
+        }
 
         #region Example
         #endregion
