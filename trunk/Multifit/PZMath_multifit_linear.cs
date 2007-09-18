@@ -240,6 +240,49 @@ namespace eee.Sheffield.PZ.Math
 		} // WlinearSVD()
 
 		#endregion
-	} // PZMath_multifit_linear
 
+        #region Example
+        public static void Example()
+        {
+            int i, j, n, m;
+            n = 19;		// number of consequtive points
+            m = 3;				// qudratic curve
+
+            // -- prepare model parameters
+            double xi, yi, chisq;
+            PZMath_matrix X, cov;
+            PZMath_vector y, w, c;
+            X = new PZMath_matrix(n, m);
+            y = new PZMath_vector(n);
+            w = new PZMath_vector(n);
+            c = new PZMath_vector(m);
+            cov = new PZMath_matrix(m, m);
+
+            // -- data to be fitted
+            for (i = 0; i < n; i++)
+            {
+                xi = 0.1 + 0.1 * i;
+                yi = System.Math.Exp(xi);
+                Console.WriteLine(xi + " " + yi);
+                for (j = 0; j < m; j++)
+                    X[i, j] = System.Math.Pow(xi, j);
+                y[i] = yi;
+                w[i] = 1.0;
+            }
+
+            // do linear fit
+            PZMath_multifit_linear l = new PZMath_multifit_linear();
+            l.Alloc(n, m);
+            l.Wlinear(X, w, y, c, cov, out chisq);
+            Console.WriteLine("# best fit: Y = " + c[0] + " + " + c[1] + " X + " + c[2] + " X^2");
+            Console.WriteLine("# covariance matrix");
+            Console.WriteLine("[ " + cov[0, 0] + " " + cov[0, 1] + " " + cov[0, 2]);
+            Console.WriteLine("  " + cov[1, 0] + " " + cov[1, 1] + " " + cov[1, 2]);
+            Console.WriteLine(" " + cov[2, 0] + " " + cov[2, 1] + " " + cov[2, 2] + "]");
+            Console.WriteLine("# chisq = " + chisq);
+            Console.WriteLine("end");
+        } // Example()
+        #endregion
+
+    } // PZMath_multifit_linear
 }

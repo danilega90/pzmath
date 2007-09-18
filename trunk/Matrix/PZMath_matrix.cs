@@ -8,6 +8,8 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace eee.Sheffield.PZ.Math
 {
@@ -18,7 +20,8 @@ namespace eee.Sheffield.PZ.Math
     /// offset + (row_index * col) * stride + col_index * stride;
     /// by default, offset = 0; stride = 1;
 	/// </summary>	
-	public class PZMath_matrix
+    [Serializable]
+	public class PZMath_matrix : ICloneable
     {
         #region Fields
         private double[] data = null;	// 1D array contains data
@@ -71,7 +74,7 @@ namespace eee.Sheffield.PZ.Math
 		} //PZMath_matrix(int row, int col)
 
 		public PZMath_matrix(PZMath_matrix m)
-			// value copy
+			// deep copy
 			// reference copy is implemented by SubMatrix()
 		{
 			row = m.row;
@@ -1491,6 +1494,32 @@ namespace eee.Sheffield.PZ.Math
             return dstBoolMatrix;
         } // ConvertToBoolMatrix()
         #endregion
+
+        #region Clone method
+        public object Clone(bool doDeepCopy)
+        {
+            if (doDeepCopy)
+            {
+                BinaryFormatter BF = new BinaryFormatter();
+                MemoryStream memStream = new MemoryStream();
+
+                BF.Serialize(memStream, this);
+                memStream.Position = 0;
+
+                return (BF.Deserialize(memStream));
+            }
+            else
+            {
+                return (this.MemberwiseClone());
+            }
+        }
+
+        public object Clone()
+        {
+            return (Clone(false));
+        }
+        #endregion
+
 
         #region example codes
         public static void IOExample()

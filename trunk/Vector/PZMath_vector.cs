@@ -240,9 +240,33 @@ namespace eee.Sheffield.PZ.Math
 			return v;
 		} // SubVector()
 
-		public void MemCopyFrom(PZMath_vector v)
+        /// <summary>
+        /// sub-sample the vector, assuming current sample rate being equal to one
+        /// sub-sample at 1 / sampleRate
+        /// average sub-sample
+        /// </summary>
+        /// <param name="sampleRate"></param>
+        /// <returns></returns>
+        public PZMath_vector SubSample(int sampleRate)
+        {
+            int newSize = (size - 1) * sampleRate + 1;
+            PZMath_vector subSampleVector = new PZMath_vector(newSize);
+            int sizeM1 = size - 1;
+            subSampleVector[newSize - 1] = this[sizeM1];
+            double dr, dl;
+            for (int s = 0; s < sampleRate; s++)
+            {
+                dr = (double)s / (double)sampleRate;
+                dl = 1 - dr;
+                for (int i = 0; i < sizeM1; i++)                    
+                    subSampleVector[sampleRate * i + s] = dr * this[i + 1] + dl * this[i];
+            }
+            return subSampleVector;
+        } // SubSample()
+
+        public void MemCopyFrom(PZMath_vector v)
 			// v is the source vector
-		{            
+		{
             if (data == null)
             {
                 size = v.Size;
@@ -267,10 +291,26 @@ namespace eee.Sheffield.PZ.Math
                 }
                 else
                 {
-                    for (int i = 0; i < size; i++)
-                        this[i] = v[i];
+                    if (size != v.Size)
+                    {
+                        size = v.Size;
+                        offset = v.offset;
+                        stride = v.stride;
+                        length = v.length;
+                        if (v.data != null)
+                        {
+                            data = new double[length];
+                            Array.Copy(v.data, data, length);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < size; i++)
+                            this[i] = v[i];
+                    }
                 }
             }
+            
             _mean = CalculateMean();
             _stddev = StandardDeviation();
 		} // MemCopy()

@@ -1,6 +1,10 @@
 // PZ image 
 // 13.12.2005
 using System;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+using System.IO;
+
 
 namespace eee.Sheffield.PZ.Imaging
 {
@@ -8,7 +12,8 @@ namespace eee.Sheffield.PZ.Imaging
 	/// <summary>
 	/// point structure and relative operation
 	/// </summary>
-	public class PZPoint
+    [Serializable]
+	public class PZPoint : ICloneable
 	{
 		public double x;
 		public double y;
@@ -129,7 +134,32 @@ namespace eee.Sheffield.PZ.Imaging
             else
                 return false;
         }
-	} // PZPoint
+
+        #region Clone method
+        public object Clone(bool doDeepCopy)
+        {
+            if (doDeepCopy)
+            {
+                BinaryFormatter BF = new BinaryFormatter();
+                MemoryStream memStream = new MemoryStream();
+
+                BF.Serialize(memStream, this);
+                memStream.Position = 0;
+
+                return (BF.Deserialize(memStream));
+            }
+            else
+            {
+                return (this.MemberwiseClone());
+            }
+        }
+
+        public object Clone()
+        {
+            return (Clone(false));
+        }
+        #endregion
+    } // PZPoint
 	#endregion
 
 	#region PZDirection class
@@ -137,7 +167,8 @@ namespace eee.Sheffield.PZ.Imaging
 	/// direction structure, with unit length, i.e.
 	/// x ^ 2 + y ^ 2 + z ^ 2 = 1
 	/// </summary>
-	public class PZDirection
+    [Serializable]
+	public class PZDirection : ICloneable
 	{
 		public double x;
 		public double y;
@@ -268,6 +299,32 @@ namespace eee.Sheffield.PZ.Imaging
 		{
 			return "(" + String.Format("{0:0.00}",x) + "," + String.Format("{0:0.00}",y) + ")";
 		} // ToString()
+
+
+        #region Clone method
+        public object Clone(bool doDeepCopy)
+        {
+            if (doDeepCopy)
+            {
+                BinaryFormatter BF = new BinaryFormatter();
+                MemoryStream memStream = new MemoryStream();
+
+                BF.Serialize(memStream, this);
+                memStream.Position = 0;
+
+                return (BF.Deserialize(memStream));
+            }
+            else
+            {
+                return (this.MemberwiseClone());
+            }
+        }
+
+        public object Clone()
+        {
+            return (Clone(false));
+        }
+        #endregion
 
         #region Example
         public static void Example()

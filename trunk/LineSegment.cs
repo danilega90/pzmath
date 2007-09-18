@@ -6,6 +6,9 @@ using System.Text;
 using eee.Sheffield.PZ.Math;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+using System.IO;
 
 namespace eee.Sheffield.PZ.Imaging
 {
@@ -15,7 +18,7 @@ namespace eee.Sheffield.PZ.Imaging
     /// line segment
     /// </summary>
     [Serializable]
-    public class LineSegment
+    public class LineSegment : ICloneable
     {
         #region Fields
         // basic
@@ -650,6 +653,28 @@ namespace eee.Sheffield.PZ.Imaging
         }
         #endregion
 
+        public object Clone(bool doDeepCopy)
+        {
+            if (doDeepCopy)
+            {
+                BinaryFormatter BF = new BinaryFormatter();
+                MemoryStream memStream = new MemoryStream();
+
+                BF.Serialize(memStream, this);
+                memStream.Position = 0;
+
+                return (BF.Deserialize(memStream));
+            }
+            else
+            {
+                return (this.MemberwiseClone());
+            }
+        }
+
+        public object Clone()
+        {
+            return (Clone(false));
+        }
         #region I/O
         #endregion
     }
