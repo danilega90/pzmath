@@ -203,7 +203,7 @@ namespace eee.Sheffield.PZ.Imaging
 			x = inputx / length;
 			y = inputy / length;
 			z = 0.0;
-		} // PZPoint(double, double)
+        } // PZDirection(double, double)
 
 		/// <summary>
 		/// 3D constructor
@@ -217,7 +217,22 @@ namespace eee.Sheffield.PZ.Imaging
 			x = inputx / length;
 			y = inputy / length;
 			z = inputz / length;
-		} // PZPoint(double, double, double)
+        } // PZDirection(double, double, double)
+
+        /// <summary>
+        /// direction of start poing to end point
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        public PZDirection(PZPoint start, PZPoint end)
+        {
+            double dx = end.x - start.x;
+            double dy = end.y - start.y;
+            double length = System.Math.Sqrt(dx * dx + dy * dy);
+            x = dx / length;
+            y = dy / length;
+            z = 0.0;
+        } // PZDirection(PZPoint, PZPoint)
 		#endregion
 		
 		/// <summary>
@@ -248,7 +263,7 @@ namespace eee.Sheffield.PZ.Imaging
 		} // GetNormalDirection()
 
 		/// <summary>
-		/// get angle to direction d
+		/// get angle to direction d in radius
 		/// </summary>
 		/// <param name="d"></param>
 		/// <returns></returns>
